@@ -2,7 +2,8 @@
   "name": "מושבים ברכב",
   "short_name": "מושבים",
   "description": "ניהול חכם של מושבי ילדים ברכב",
-  "start_url": "/",
+  "start_url": "/carseats-pwa/",
+  "scope": "/carseats-pwa/",
   "display": "standalone",
   "background_color": "#07070f",
   "theme_color": "#07070f",
@@ -22,14 +23,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [],
-  "shortcuts": [
-    {
-      "name": "נסיעה חדשה",
-      "url": "/?tab=trip",
-      "description": "פתח נסיעה חדשה"
     }
   ]
 }
