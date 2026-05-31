@@ -980,7 +980,7 @@ function renderQueues() {
         const ci = S.children.findIndex(x=>x.name===c.name);
         const isNext=i===0;
         return `<div class="q-item">
-          <div class="q-rank ${isNext?'first'}">${i+1}</div>
+          <div class="q-rank ${isNext?'first':''}">${i+1}</div>
           <div class="avatar avatar-sm ${COLORS[ci%8]}">${GENDERS[c.gender||'n']}</div>
           <div class="q-info">
             <div class="q-name">${c.name}</div>
@@ -1118,6 +1118,6 @@ document.addEventListener('keydown', e=>{
 load();
 renderTripSetup();
 </script>
-<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").then(r=>console.log("SW registered")).catch(e=>console.log("SW error",e))}</script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/carseats-pwa/sw.js").then(r=>console.log("SW registered")).catch(e=>console.log("SW error",e))}</script>
 </body>
 </html>
