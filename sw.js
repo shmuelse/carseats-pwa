@@ -1,16 +1,16 @@
-const CACHE = 'carseats-v3';
+const CACHE = 'carseats-v4';
+const BASE = '/carseats-pwa';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(cache =>
-      cache.addAll(ASSETS.filter(a => !a.startsWith('http')))
-    ).then(() => self.skipWaiting())
+    caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
   );
 });
 
@@ -32,7 +32,7 @@ self.addEventListener('fetch', e => {
         const clone = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match(BASE + '/index.html'));
     })
   );
 });
