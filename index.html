@@ -499,6 +499,34 @@ body {
 .empty .e-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.6; }
 .empty p { font-size: 14px; line-height: 1.6; }
 
+
+/* ── FIXED SEAT ── */
+.fixed-seat-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 20px;
+  font-size: 11px; font-family: var(--mono);
+  color: var(--text2); cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.fixed-seat-btn.has-fixed { background: rgba(255,181,71,0.12); border-color: var(--amber); color: var(--amber); }
+.seat-picker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom:8px; }
+.seat-picker-btn {
+  padding: 12px 6px;
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--r-sm);
+  font-size: 11px; font-family: var(--mono);
+  color: var(--text2); cursor: pointer;
+  text-align: center; transition: all 0.2s;
+}
+.seat-picker-btn.sp-front { background: var(--accent-glow); border-color: var(--accent); color: var(--accent2); }
+.seat-picker-btn.sp-mid { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.seat-picker-btn.sp-back { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+.seat-zone-label { font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing:0.8px; text-transform:uppercase; margin: 12px 0 6px; }
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -723,6 +751,33 @@ body {
   </div>
 </div>
 
+
+<!-- Fixed Seat Picker Modal -->
+<div class="modal-overlay" id="fixedSeatModal" style="display:none" onclick="fixedModalBG(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="fixedSeatTitle">מושב קבוע</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">ילד עם מושב קבוע תמיד ישב שם — ולא ישתתף בתורנות.</div>
+    <div class="seat-zone-label">קדמי</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-front" onclick="selectFixedSeat('front')">🪑<br>קדמי</button>
+    </div>
+    <div class="seat-zone-label">שורה אמצעית</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-mid1" onclick="selectFixedSeat('mid1')">🪑<br>שמאל</button>
+      <button class="seat-picker-btn" id="sp-mid2" onclick="selectFixedSeat('mid2')">🪑<br>אמצע</button>
+      <button class="seat-picker-btn" id="sp-mid3" onclick="selectFixedSeat('mid3')">🪑<br>ימין</button>
+    </div>
+    <div class="seat-zone-label">שורה אחורית</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-back1" onclick="selectFixedSeat('back1')">🪑<br>שמאל</button>
+      <button class="seat-picker-btn" id="sp-back2" onclick="selectFixedSeat('back2')">🪑<br>ימין</button>
+    </div>
+    <button class="btn-sec" style="margin-top:12px;background:rgba(255,107,138,0.08);border-color:rgba(255,107,138,0.2);color:var(--rose)" onclick="selectFixedSeat(null)">✕ הסר מושב קבוע</button>
+    <button class="btn-sec" style="margin-top:8px" onclick="closeFixedModal()">ביטול</button>
+  </div>
+</div>
+
 <!-- Assign Modal -->
 <div class="modal-overlay" id="assignModal" style="display:none" onclick="modalBG(event)">
   <div class="modal-sheet">
@@ -851,7 +906,17 @@ function generate() {
   trip.seats = {};
   const type = trip.type;
   const onlyOneParent = trip.parents.length <= 1;
-  const children = [...trip.children];
+
+  // Place children with fixed seats first, remove from rotation
+  const fixedNames = [];
+  trip.children.forEach(name => {
+    const child = S.children.find(c => c.name === name);
+    if(child && child.fixedSeat) {
+      trip.seats[child.fixedSeat] = name;
+      fixedNames.push(name);
+    }
+  });
+  const children = trip.children.filter(n => !fixedNames.includes(n));
 
   // Score for front (fewer front trips = more deserving)
   const score = name => {
@@ -1038,13 +1103,20 @@ function renderSettings() {
     el.innerHTML='<div class="empty"><p>אין ילדים עדיין</p></div>'; return;
   }
   el.innerHTML = S.children.map((c,i)=>`
-    <div class="child-settings-row">
-      <div class="avatar ${COLORS[i%8]}">${GENDERS[c.gender||'n']}</div>
-      <div class="child-fields">
-        <input class="input" value="${c.name}" onblur="renameChild(${i},this.value)" style="margin-bottom:0;flex:1" placeholder="שם">
-        <button class="gender-btn ${c.gender==='m'?'m':c.gender==='f'?'f':''}" onclick="cycleGender(${i})">${GENDERS[c.gender||'n']}</button>
+    <div class="child-settings-row" style="flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+        <div class="avatar ${COLORS[i%8]}">${GENDERS[c.gender||'n']}</div>
+        <div class="child-fields">
+          <input class="input" value="${c.name}" onblur="renameChild(${i},this.value)" style="margin-bottom:0;flex:1" placeholder="שם">
+          <button class="gender-btn ${c.gender==='m'?'m':c.gender==='f'?'f':''}" onclick="cycleGender(${i})">${GENDERS[c.gender||'n']}</button>
+        </div>
+        <button class="btn-icon btn-danger" onclick="removeChild(${i})">✕</button>
       </div>
-      <button class="btn-icon btn-danger" onclick="removeChild(${i})">✕</button>
+      <div style="width:100%;padding-right:52px;margin-top:6px">
+        <button class="fixed-seat-btn ${c.fixedSeat?'has-fixed':''}" onclick="openFixedSeatPicker(${i})">
+          ${c.fixedSeat ? '📌 ' + seatLabel(c.fixedSeat) : '📌 הגדר מושב קבוע'}
+        </button>
+      </div>
     </div>
   `).join('');
 }
@@ -1122,6 +1194,47 @@ document.addEventListener('keydown', e=>{
 load();
 renderTripSetup();
 </script>
+
+// ── FIXED SEAT ──
+let fixedSeatChildIdx = null;
+
+const SEAT_LABELS = {
+  front: 'קדמי', mid1: 'אמצע שמאל', mid2: 'אמצע אמצע',
+  mid3: 'אמצע ימין', back1: 'אחורי שמאל', back2: 'אחורי ימין'
+};
+function seatLabel(k) { return SEAT_LABELS[k] || k; }
+
+function openFixedSeatPicker(i) {
+  fixedSeatChildIdx = i;
+  const c = S.children[i];
+  document.getElementById('fixedSeatTitle').textContent = 'מושב קבוע — ' + c.name;
+  // Highlight current
+  Object.keys(SEAT_LABELS).forEach(k => {
+    const el = document.getElementById('sp-' + k);
+    if(el) {
+      el.className = 'seat-picker-btn';
+      if(c.fixedSeat === k) {
+        const z = k === 'front' ? 'sp-front' : k.startsWith('back') ? 'sp-back' : 'sp-mid';
+        el.className = 'seat-picker-btn ' + z;
+      }
+    }
+  });
+  document.getElementById('fixedSeatModal').style.display = 'flex';
+}
+
+function selectFixedSeat(seatKey) {
+  if(fixedSeatChildIdx === null) return;
+  S.children[fixedSeatChildIdx].fixedSeat = seatKey || null;
+  save();
+  closeFixedModal();
+  renderSettings();
+}
+
+function closeFixedModal() {
+  document.getElementById('fixedSeatModal').style.display = 'none';
+}
+function fixedModalBG(e) { if(e.target.id === 'fixedSeatModal') closeFixedModal(); }
+
 <script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/carseats-pwa/sw.js").then(r=>console.log("SW registered")).catch(e=>console.log("SW error",e))}</script>
 </body>
 </html>
