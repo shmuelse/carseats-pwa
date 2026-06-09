@@ -1195,6 +1195,499 @@ renderTripSetup();
 </script>
 
 
+<!-- Fixed Seat Picker Modal -->
+<div class="modal-overlay" id="fixedSeatModal" style="display:none" onclick="fixedModalBG(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="fixedSeatTitle">מושב קבוע</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">ילד עם מושב קבוע תמיד ישב שם — ולא ישתתף בתורנות.</div>
+    <div class="seat-zone-label">קדמי</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-front" onclick="selectFixedSeat('front')">🪑<br>קדמי</button>
+    </div>
+    <div class="seat-zone-label">שורה אמצעית</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-mid1" onclick="selectFixedSeat('mid1')">🪑<br>שמאל</button>
+      <button class="seat-picker-btn" id="sp-mid2" onclick="selectFixedSeat('mid2')">🪑<br>אמצע</button>
+      <button class="seat-picker-btn" id="sp-mid3" onclick="selectFixedSeat('mid3')">🪑<br>ימין</button>
+    </div>
+    <div class="seat-zone-label">שורה אחורית</div>
+    <div class="seat-picker-grid">
+      <button class="seat-picker-btn" id="sp-back1" onclick="selectFixedSeat('back1')">🪑<br>שמאל</button>
+      <button class="seat-picker-btn" id="sp-back2" onclick="selectFixedSeat('back2')">🪑<br>ימין</button>
+    </div>
+    <button class="btn-sec" style="margin-top:12px;background:rgba(255,107,138,0.08);border-color:rgba(255,107,138,0.2);color:var(--rose)" onclick="selectFixedSeat(null)">✕ הסר מושב קבוע</button>
+    <button class="btn-sec" style="margin-top:8px" onclick="closeFixedModal()">ביטול</button>
+  </div>
+</div>
+
+<!-- Assign Modal -->
+<div class="modal-overlay" id="assignModal" style="display:none" onclick="modalBG(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">בחר ילד/ה</div>
+    <div id="modalOptions"></div>
+    <button class="btn-sec" style="margin-top:8px" onclick="clearSeat()">🚫 הסר מהמושב</button>
+    <button class="btn-sec" style="margin-top:8px" onclick="closeModal()">ביטול</button>
+  </div>
+</div>
+
+<script>
+const COLORS = ['c0','c1','c2','c3','c4','c5','c6','c7'];
+const GENDERS = { m: '👦', f: '👧', n: '🧒' };
+const GENDER_CYCLE = ['m','f','n'];
+
+let S = {
+  children: [],
+  parents: ['הורה 1','הורה 2'],
+  trips: [],
+};
+let trip = { type:'short', parents:[], children:[], seats:{} };
+let activeSeat = null;
+let newGender = 'm';
+let deferredPrompt = null;
+
+function load() {
+  try {
+    const d = localStorage.getItem('carsv3');
+    if (d) S = JSON.parse(d);
+    if (!S.parents) S.parents = ['הורה 1','הורה 2'];
+    if (!S.children) S.children = [];
+    if (!S.trips) S.trips = [];
+  } catch(e) {}
+}
+function save() { localStorage.setItem('carsv3', JSON.stringify(S)); }
+
+function cc(name) {
+  const i = S.children.findIndex(c=>c.name===name);
+  return i>=0 ? COLORS[i%8] : 'c0';
+}
+function gIcon(name) {
+  const c = S.children.find(x=>x.name===name);
+  return GENDERS[c?.gender||'n'];
+}
+
+// ── TABS ──
+function showTab(t) {
+  ['trip','queue','history','settings'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display = id===t?'':'none';
+    document.getElementById('ntab-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='trip') renderTripSetup();
+  if(t==='queue') renderQueues();
+  if(t==='history') renderHistory();
+  if(t==='settings') renderSettings();
+}
+
+// ── TRIP SETUP ──
+function renderTripSetup() {
+  // Install banner
+  const wrap = document.getElementById('installBannerWrap');
+  if(deferredPrompt) {
+    wrap.innerHTML = `<div class="install-banner" onclick="installPWA()">
+      <span style="font-size:28px">📲</span>
+      <div class="ib-text">
+        <div class="ib-title">התקן כאפליקציה</div>
+        <div class="ib-sub">עובד ללא אינטרנט · כפתור בדף הבית</div>
+      </div>
+    </div>`;
+  } else wrap.innerHTML='';
+
+  // Trip counter
+  document.getElementById('tripCounter').textContent = S.trips.length + ' נסיעות';
+
+  // Parents
+  const pg = document.getElementById('parentsGrid');
+  pg.innerHTML = S.parents.map((p,i) => `
+    <div class="parent-btn ${trip.parents.includes(i)?'active':''}" onclick="toggleParent(${i})">
+      <div class="p-icon">👤</div>
+      <div class="p-name">${p||('הורה '+(i+1))}</div>
+    </div>
+  `).join('');
+
+  // Children
+  const cl = document.getElementById('childrenCheckList');
+  if(!S.children.length) {
+    cl.innerHTML='<div class="empty"><p>הוסף ילדים בהגדרות ↓</p></div>'; return;
+  }
+  cl.innerHTML = S.children.map((c,i)=>`
+    <div class="card-row" onclick="toggleChild('${c.name}')">
+      <div class="avatar ${COLORS[i%8]}">${GENDERS[c.gender||'n']}</div>
+      <div class="flex-1" style="font-size:15px;font-weight:500">${c.name}</div>
+      <div class="check-circle ${trip.children.includes(c.name)?'on':''}">✓</div>
+    </div>
+  `).join('');
+}
+
+function selType(t) {
+  trip.type = t;
+  document.getElementById('btn-short').classList.toggle('sel',t==='short');
+  document.getElementById('btn-long').classList.toggle('sel',t==='long');
+}
+
+function toggleParent(i) {
+  const idx = trip.parents.indexOf(i);
+  if(idx>=0) trip.parents.splice(idx,1); else trip.parents.push(i);
+  renderTripSetup();
+}
+function toggleChild(name) {
+  const idx = trip.children.indexOf(name);
+  if(idx>=0) trip.children.splice(idx,1); else trip.children.push(name);
+  renderTripSetup();
+}
+
+// ── GENERATE ──
+function zone(k) {
+  if(!k) return 'mid';
+  if(k==='front') return 'front';
+  if(k.startsWith('back')) return 'back';
+  return 'mid';
+}
+
+function generate() {
+  if(!trip.children.length) { alert('בחר לפחות ילד/ה אחד/ת'); return; }
+  trip.seats = {};
+  const type = trip.type;
+  const onlyOneParent = trip.parents.length <= 1;
+
+  // Place children with fixed seats first, remove from rotation
+  const fixedNames = [];
+  trip.children.forEach(name => {
+    const child = S.children.find(c => c.name === name);
+    if(child && child.fixedSeat) {
+      trip.seats[child.fixedSeat] = name;
+      fixedNames.push(name);
+    }
+  });
+  const children = trip.children.filter(n => !fixedNames.includes(n));
+
+  // Score for front (fewer front trips = more deserving)
+  const score = name => {
+    const trips = S.trips.filter(t=>t.type===type && t.children?.includes(name));
+    const fCount = trips.filter(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===name))==='front').length;
+    const lastF = trips.slice().reverse().findIndex(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===name))==='front');
+    return { fCount, lastF };
+  };
+
+  const sorted = [...children].sort((a,b)=>{
+    const sa=score(a), sb=score(b);
+    if(sa.fCount!==sb.fCount) return sa.fCount-sb.fCount;
+    return sb.lastF - sa.lastF;
+  });
+
+  let rem = [...children];
+
+  if(onlyOneParent && rem.length>0) {
+    trip.seats['front'] = sorted[0].name || sorted[0];
+    rem = rem.filter(n=>n!==trip.seats['front']);
+  }
+
+  const midSeats = ['mid1','mid2','mid3'];
+  rem.slice(0,3).forEach((n,i)=>{ trip.seats[midSeats[i]]=n; });
+  rem = rem.slice(3);
+
+  // Score for back (more back trips = deserving to not be there)
+  const backSorted = [...rem].sort((a,b)=>{
+    const at=S.trips.filter(t=>t.type===type&&t.children?.includes(a));
+    const bt=S.trips.filter(t=>t.type===type&&t.children?.includes(b));
+    const aB=at.filter(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===a))==='back').length;
+    const bB=bt.filter(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===b))==='back').length;
+    return aB-bB;
+  });
+  backSorted.slice(0,2).forEach((n,i)=>{ trip.seats['back'+(i+1)]=n; });
+
+  renderCar();
+  document.getElementById('setup-view').style.display='none';
+  document.getElementById('assign-view').style.display='';
+  const fc = trip.seats['front'];
+  document.getElementById('successText').textContent = fc
+    ? `${gIcon(fc)} ${fc} יושב/ת בכסא הקדמי`
+    : `סידור מושבים מוכן לנסיעה ${type==='short'?'קצרה':'ארוכה'}`;
+}
+
+function renderCar() {
+  const seats = {
+    front:'front', mid1:'mid', mid2:'mid', mid3:'mid', back1:'back', back2:'back'
+  };
+  Object.entries(seats).forEach(([k,z])=>{
+    const el = document.getElementById('seat-'+k);
+    const who = trip.seats[k];
+    if(who) {
+      const cls = cc(who);
+      el.className = `seat occ occ-${z}`;
+      el.innerHTML = `<div class="avatar avatar-sm ${cls}">${gIcon(who)}</div><span class="seat-occ-name">${who}</span>`;
+    } else {
+      el.className = 'seat';
+      el.innerHTML = `<span class="seat-plus">+</span>`;
+    }
+  });
+}
+
+// ── ASSIGN MODAL ──
+function openAssign(k) {
+  activeSeat = k;
+  const names = {front:'כסא קדמי',mid1:'אמצע שמאל',mid2:'אמצע אמצע',mid3:'אמצע ימין',back1:'אחורי שמאל',back2:'אחורי ימין'};
+  document.getElementById('modalTitle').textContent = names[k]||k;
+  document.getElementById('modalOptions').innerHTML = trip.children.map(name=>{
+    const cls=cc(name), cur=trip.seats[k]===name;
+    return `<div class="assign-opt ${cur?'rec':''}" onclick="assignSeat('${name}')">
+      <div class="avatar avatar-sm ${cls}">${gIcon(name)}</div>
+      <span class="opt-name">${name}</span>
+      ${cur?'<span class="zbadge zb-front">נוכחי</span>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('assignModal').style.display='flex';
+}
+function assignSeat(name) {
+  Object.keys(trip.seats).forEach(k=>{ if(trip.seats[k]===name) delete trip.seats[k]; });
+  trip.seats[activeSeat] = name;
+  closeModal(); renderCar();
+}
+function clearSeat() { delete trip.seats[activeSeat]; closeModal(); renderCar(); }
+function closeModal() { document.getElementById('assignModal').style.display='none'; }
+function modalBG(e) { if(e.target.id==='assignModal') closeModal(); }
+
+function showSetup() {
+  document.getElementById('setup-view').style.display='';
+  document.getElementById('assign-view').style.display='none';
+}
+
+// ── SAVE TRIP ──
+function saveTrip() {
+  const t = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('he-IL'),
+    time: new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),
+    type: trip.type,
+    parents: [...trip.parents],
+    children: [...trip.children],
+    seats: {...trip.seats}
+  };
+  S.trips.unshift(t);
+  if(S.trips.length>300) S.trips=S.trips.slice(0,300);
+  save();
+  trip = { type:trip.type, parents:[...trip.parents], children:[], seats:{} };
+  showSetup(); renderTripSetup();
+  alert('✅ נסיעה נשמרה!');
+}
+
+// ── QUEUES ──
+function renderQueues() {
+  ['front','back'].forEach(z=>{
+    ['short','long'].forEach(type=>{
+      const id = `q-${z}-${type}`;
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(!S.children.length) { el.innerHTML='<div class="empty"><p>אין ילדים</p></div>'; return; }
+      const ranked = S.children.map(c=>{
+        const ts = S.trips.filter(t=>t.type===type && t.children?.includes(c.name));
+        const cnt = ts.filter(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===c.name))===z).length;
+        const last = ts.slice().reverse().findIndex(t=>zone(Object.keys(t.seats||{}).find(k=>t.seats[k]===c.name))===z);
+        return {c, cnt, last};
+      }).sort((a,b)=>{
+        if(z==='front') return a.cnt-b.cnt || b.last-a.last;
+        return b.cnt-a.cnt || a.last-b.last;
+      });
+      el.innerHTML = ranked.map(({c,cnt},i)=>{
+        const ci = S.children.findIndex(x=>x.name===c.name);
+        const isNext=i===0;
+        return `<div class="q-item">
+          <div class="q-rank ${isNext?'first':''}">${i+1}</div>
+          <div class="avatar avatar-sm ${COLORS[ci%8]}">${GENDERS[c.gender||'n']}</div>
+          <div class="q-info">
+            <div class="q-name">${c.name}</div>
+            <div class="q-stat">${cnt} פעמים</div>
+          </div>
+          ${isNext?'<span class="next-tag">הבא/ה</span>':''}
+        </div>`;
+      }).join('');
+    });
+  });
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const total = S.trips.length;
+  const frontTrips = S.trips.filter(t=>t.seats?.front).length;
+  const fCounts = {};
+  S.children.forEach(c=>{ fCounts[c.name]=S.trips.filter(t=>t.seats?.front===c.name).length; });
+  const top = Object.entries(fCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">סה"כ נסיעות</div><div class="stat-val">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">עם כסא קדמי</div><div class="stat-val">${frontTrips}</div></div>
+    ${top?`<div class="stat-card" style="grid-column:1/-1"><div class="stat-label">הכי הרבה בקדמי</div><div class="stat-val" style="font-size:20px">${gIcon(top[0])} ${top[0]}</div><div class="stat-name">${top[1]} נסיעות</div></div>`:''}
+  `;
+
+  const hl = document.getElementById('histList');
+  if(!S.trips.length) { hl.innerHTML='<div class="empty"><div class="e-icon">🛣️</div><p>אין נסיעות עדיין</p></div>'; return; }
+  hl.innerHTML = S.trips.slice(0,30).map(t=>{
+    const fc = t.seats?.front;
+    const seatCount = Object.keys(t.seats||{}).length;
+    const parentNames = (t.parents||[]).map(i=>S.parents[i]||('הורה '+(i+1))).join(' + ');
+    return `<div class="hist-item">
+      <div class="hist-date">${t.date}<br><span style="font-size:10px">${t.time||''}</span></div>
+      <div class="hist-info">
+        <div class="hist-who">${(t.children||[]).join(', ')||'—'}</div>
+        <div class="hist-detail">${fc?`${gIcon(fc)} ${fc} קדמי`:'ללא קדמי'} · ${parentNames||'ללא הורים'}</div>
+      </div>
+      <span class="zbadge ${t.type==='short'?'zb-short':'zb-long'}">${t.type==='short'?'קצרה':'ארוכה'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── SETTINGS ──
+function renderSettings() {
+  document.getElementById('parent0Input').value = S.parents[0]||'';
+  document.getElementById('parent1Input').value = S.parents[1]||'';
+
+  const el = document.getElementById('childSettingsList');
+  if(!S.children.length) {
+    el.innerHTML='<div class="empty"><p>אין ילדים עדיין</p></div>'; return;
+  }
+  el.innerHTML = S.children.map((c,i)=>`
+    <div class="child-settings-row" style="flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+        <div class="avatar ${COLORS[i%8]}">${GENDERS[c.gender||'n']}</div>
+        <div class="child-fields">
+          <input class="input" value="${c.name}" onblur="renameChild(${i},this.value)" style="margin-bottom:0;flex:1" placeholder="שם">
+          <button class="gender-btn ${c.gender==='m'?'m':c.gender==='f'?'f':''}" onclick="cycleGender(${i})">${GENDERS[c.gender||'n']}</button>
+        </div>
+        <button class="btn-icon btn-danger" id="del-${i}" onclick="confirmDelete(${i}, this)">✕</button>
+      </div>
+      <div style="width:100%;padding-right:52px;margin-top:6px">
+        <button class="fixed-seat-btn ${c.fixedSeat?'has-fixed':''}" onclick="openFixedSeatPicker(${i})">
+          ${c.fixedSeat ? '📌 ' + seatLabel(c.fixedSeat) : '📌 הגדר מושב קבוע'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveParentName(i, v) { S.parents[i]=v; save(); }
+
+function cycleGender(i) {
+  const cur = S.children[i].gender||'n';
+  const idx = GENDER_CYCLE.indexOf(cur);
+  S.children[i].gender = GENDER_CYCLE[(idx+1)%3];
+  save(); renderSettings();
+}
+
+function cycleNewGender() {
+  const idx = GENDER_CYCLE.indexOf(newGender);
+  newGender = GENDER_CYCLE[(idx+1)%3];
+  document.getElementById('newGenderBtn').textContent = GENDERS[newGender];
+}
+
+function renameChild(i, v) {
+  v = v.trim();
+  if(!v) { renderSettings(); return; }
+  const old = S.children[i].name;
+  if(v===old) return;
+  // Update trips
+  S.trips.forEach(t=>{
+    if(t.children) t.children=t.children.map(n=>n===old?v:n);
+    if(t.seats) Object.keys(t.seats).forEach(k=>{ if(t.seats[k]===old) t.seats[k]=v; });
+  });
+  S.children[i].name = v;
+  save(); renderSettings();
+}
+
+function addChild() {
+  const name = document.getElementById('newChildName').value.trim();
+  if(!name) return;
+  if(S.children.find(c=>c.name===name)) { alert('שם קיים'); return; }
+  S.children.push({ name, gender: newGender });
+  document.getElementById('newChildName').value='';
+  save(); renderSettings();
+}
+
+function removeChild(i) {
+  S.children.splice(i,1);
+  save(); renderSettings();
+}
+
+function clearHistory() {
+  S.trips=[];
+  save(); renderHistory();
+  alert('ההיסטוריה נמחקה');
+}
+
+// ── PWA INSTALL ──
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt=e;
+  renderTripSetup();
+});
+async function installPWA() {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const r = await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('installBannerWrap').innerHTML='';
+}
+window.addEventListener('appinstalled', ()=>{ deferredPrompt=null; });
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && document.activeElement.id==='newChildName') addChild();
+});
+
+// ── INIT ──
+load();
+
+renderTripSetup();
+
+// ── DELETE WITH INLINE CONFIRM ──
+let deleteTimer = null;
+function confirmDelete(i, btn) {
+  if(btn.dataset.confirming === '1') {
+    clearTimeout(deleteTimer);
+    removeChild(i);
+  } else {
+    btn.dataset.confirming = '1';
+    btn.textContent = 'מחק?';
+    btn.style.background = 'rgba(255,107,138,0.25)';
+    btn.style.color = 'var(--rose)';
+    btn.style.borderColor = 'var(--rose)';
+    btn.style.minWidth = '52px';
+    deleteTimer = setTimeout(() => {
+      if(btn) { btn.dataset.confirming = '0'; btn.textContent = '✕'; btn.style = ''; }
+    }, 3000);
+  }
+}
+
+// ── FIXED SEAT ──
+let fixedSeatChildIdx = null;
+const SEAT_LABELS = { front:'קדמי', mid1:'אמצע שמאל', mid2:'אמצע אמצע', mid3:'אמצע ימין', back1:'אחורי שמאל', back2:'אחורי ימין' };
+function seatLabel(k) { return SEAT_LABELS[k] || k; }
+
+function openFixedSeatPicker(i) {
+  fixedSeatChildIdx = i;
+  const c = S.children[i];
+  document.getElementById('fixedSeatTitle').textContent = 'מושב קבוע — ' + c.name;
+  Object.keys(SEAT_LABELS).forEach(k => {
+    const el = document.getElementById('sp-' + k);
+    if(!el) return;
+    el.className = 'seat-picker-btn';
+    if(c.fixedSeat === k) {
+      el.className += k === 'front' ? ' sp-front' : k.startsWith('back') ? ' sp-back' : ' sp-mid';
+    }
+  });
+  document.getElementById('fixedSeatModal').style.display = 'flex';
+}
+
+function selectFixedSeat(seatKey) {
+  if(fixedSeatChildIdx === null) return;
+  S.children[fixedSeatChildIdx].fixedSeat = seatKey || null;
+  save(); closeFixedModal(); renderSettings();
+}
+
+function closeFixedModal() { document.getElementById('fixedSeatModal').style.display = 'none'; }
+function fixedModalBG(e) { if(e.target.id === 'fixedSeatModal') closeFixedModal(); }
+
+</script>
+
+
 // ── DELETE WITH INLINE CONFIRM ──
 let deleteTimer = null;
 function confirmDelete(i, btn) {
