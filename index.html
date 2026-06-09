@@ -1110,7 +1110,7 @@ function renderSettings() {
           <input class="input" value="${c.name}" onblur="renameChild(${i},this.value)" style="margin-bottom:0;flex:1" placeholder="שם">
           <button class="gender-btn ${c.gender==='m'?'m':c.gender==='f'?'f':''}" onclick="cycleGender(${i})">${GENDERS[c.gender||'n']}</button>
         </div>
-        <button class="btn-icon btn-danger" onclick="removeChild(${i})">✕</button>
+        <button class="btn-icon btn-danger" id="del-${i}" onclick="confirmDelete(${i}, this)">✕</button>
       </div>
       <div style="width:100%;padding-right:52px;margin-top:6px">
         <button class="fixed-seat-btn ${c.fixedSeat?'has-fixed':''}" onclick="openFixedSeatPicker(${i})">
@@ -1160,15 +1160,14 @@ function addChild() {
 }
 
 function removeChild(i) {
-  if(!confirm(`להסיר את ${S.children[i].name}?`)) return;
   S.children.splice(i,1);
   save(); renderSettings();
 }
 
 function clearHistory() {
-  if(!confirm('למחוק את כל ההיסטוריה?')) return;
   S.trips=[];
   save(); renderHistory();
+  alert('ההיסטוריה נמחקה');
 }
 
 // ── PWA INSTALL ──
@@ -1194,6 +1193,30 @@ document.addEventListener('keydown', e=>{
 load();
 renderTripSetup();
 </script>
+
+
+// ── DELETE WITH INLINE CONFIRM ──
+let deleteTimer = null;
+function confirmDelete(i, btn) {
+  if(btn.dataset.confirming === '1') {
+    // Second tap — delete
+    clearTimeout(deleteTimer);
+    removeChild(i);
+  } else {
+    // First tap — ask
+    btn.dataset.confirming = '1';
+    btn.textContent = 'מחק?';
+    btn.style.background = 'rgba(255,107,138,0.25)';
+    btn.style.color = 'var(--rose)';
+    btn.style.borderColor = 'var(--rose)';
+    btn.style.minWidth = '52px';
+    deleteTimer = setTimeout(() => {
+      btn.dataset.confirming = '0';
+      btn.textContent = '✕';
+      btn.style = '';
+    }, 3000);
+  }
+}
 
 // ── FIXED SEAT ──
 let fixedSeatChildIdx = null;
