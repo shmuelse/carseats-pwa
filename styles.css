@@ -1,0 +1,375 @@
+:root {
+  --bg: #07070f;
+  --panel: #111120;
+  --panel-2: #18182c;
+  --text: #f2f2fa;
+  --muted: #9696b5;
+  --border: #30304a;
+  --accent: #786fff;
+  --teal: #00cfa6;
+  --danger: #ff6b8a;
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  width: min(100%, 460px);
+  margin: auto;
+  padding: 16px 18px 32px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.badge {
+  padding: 5px 10px;
+  color: #b4afff;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+/* Navigation */
+.nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 12px 0 20px;
+}
+
+.nav-btn,
+.choice,
+.secondary,
+.danger,
+.primary,
+.file-label {
+  padding: 12px 10px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.nav-btn {
+  padding: 10px 3px;
+  font-size: 12px;
+}
+
+.nav-btn.active,
+.choice.selected {
+  color: #c4c0ff;
+  background: #242047;
+  border-color: var(--accent);
+}
+
+/* Shared layout */
+h2 {
+  margin: 20px 0 9px;
+  color: #c9c9dc;
+  font-size: 14px;
+}
+
+h3 {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  gap: 8px;
+}
+
+.grid.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.card {
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #24243b;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row button.row-main {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  padding: 0;
+  color: var(--text);
+  text-align: right;
+  background: none;
+  border: 0;
+}
+
+.avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  background: #28244f;
+  border-radius: 10px;
+}
+
+.check {
+  margin-inline-start: auto;
+  color: var(--muted);
+}
+
+.check.on {
+  color: var(--teal);
+  font-weight: bold;
+}
+
+/* Buttons and messages */
+.primary {
+  width: 100%;
+  margin-top: 14px;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--accent), #9a63ff);
+  border: 0;
+}
+
+.secondary,
+.danger {
+  width: 100%;
+}
+
+.danger {
+  color: var(--danger);
+  background: #291521;
+  border-color: #5c2639;
+}
+
+.hint,
+.privacy,
+.empty {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.empty {
+  padding: 18px;
+  text-align: center;
+}
+
+.success {
+  padding: 12px;
+  margin-bottom: 12px;
+  color: #70f1d5;
+  background: #0b2d28;
+  border: 1px solid #186b5b;
+  border-radius: 12px;
+}
+
+/* Car diagram */
+.car {
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+}
+
+.car-row {
+  display: grid;
+  grid-template-columns: 50px repeat(3, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 9px;
+}
+
+.car-row:first-child,
+.car-row:last-child {
+  grid-template-columns: 50px repeat(2, 1fr);
+}
+
+.car-row:last-child {
+  margin-bottom: 0;
+}
+
+.car-row > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.seat {
+  min-height: 68px;
+  padding: 6px;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.seat.occupied {
+  color: var(--text);
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.seat.fixed {
+  box-shadow: inset 0 0 0 1px var(--teal);
+}
+
+.driver {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.actions,
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.stat {
+  padding: 14px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.stat strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 24px;
+}
+
+/* Forms and settings */
+.form-card {
+  padding: 14px;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 11px;
+  margin-top: 5px;
+  color: var(--text);
+  background: #0c0c17;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.small-btn {
+  padding: 8px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.fixed-label {
+  color: var(--teal);
+  font-size: 11px;
+}
+
+.queue-rank {
+  width: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.file-label {
+  color: var(--text);
+  text-align: center;
+}
+
+.file-label input {
+  display: none;
+}
+
+/* Dialogs */
+dialog {
+  width: min(92%, 420px);
+  padding: 0;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+dialog::backdrop {
+  background: #000b;
+}
+
+dialog form {
+  padding: 18px;
+}
+
+dialog .row {
+  padding-inline: 0;
+}
+
+@media (max-width: 360px) {
+  .nav-btn {
+    font-size: 10px;
+  }
+
+  .app {
+    padding-inline: 10px;
+  }
+}
