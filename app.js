@@ -24,7 +24,6 @@
   const GENDER_ICONS = {
     m: '👦',
     f: '👧',
-    n: '🧒',
   };
 
   let state = createEmptyState();
@@ -40,7 +39,7 @@
   function createEmptyState() {
     return {
       version: 4,
-      parents: ['הורה 1', 'הורה 2'],
+      parents: ['אבא', 'אמא'],
       children: [],
       trips: [],
     };
