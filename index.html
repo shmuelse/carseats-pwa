@@ -1,37 +1,242 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#07070f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="מושבים">
-  <meta name="description" content="ניהול הוגן של מושבי ילדים ברכב">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css">
-  <title>מושבים ברכב</title>
-</head>
-<body>
-  <main class="app">
-    <header class="header">
-      <div><h1>🚗 מושבים</h1><p>סידור הוגן למשפחה</p></div>
-      <span id="tripCounter" class="badge">0 נסיעות</span>
-    </header>
-    <nav class="nav" aria-label="ניווט ראשי">
-      <button class="nav-btn active" data-tab="trip">🚘 נסיעה</button><button class="nav-btn" data-tab="queue">📋 תורים</button><button class="nav-btn" data-tab="history">🛣️ היסטוריה</button><button class="nav-btn" data-tab="settings">⚙️ הגדרות</button>
-    </nav>
-    <section id="tab-trip" class="tab">
-      <div id="setupView"><div id="installBanner"></div><h2>סוג נסיעה</h2><div class="grid two"><button id="shortBtn" class="choice selected" data-trip-type="short">⚡ קצרה</button><button id="longBtn" class="choice" data-trip-type="long">🛣️ ארוכה</button></div><h2>מי מההורים נוסע?</h2><div id="parentsGrid" class="grid two"></div><p class="hint">מושב קדמי לילד זמין רק כאשר נבחר הורה אחד בדיוק.</p><h2>מי מהילדים נוסע?</h2><div id="childrenList" class="card"></div><button id="generateBtn" class="primary">צור סידור מושבים</button></div>
-      <div id="assignmentView" hidden><div id="assignmentMessage" class="success"></div><div class="car"><div class="car-row"><span>קדמי</span><button class="seat driver" disabled>נהג</button><button class="seat" data-seat="front">+</button></div><div class="car-row"><span>אמצע</span><button class="seat" data-seat="mid1">+</button><button class="seat" data-seat="mid2">+</button><button class="seat" data-seat="mid3">+</button></div><div class="car-row"><span>אחורי</span><button class="seat" data-seat="back1">+</button><button class="seat" data-seat="back2">+</button></div></div><div class="actions"><button id="editTripBtn" class="secondary">חזור לעריכה</button><button id="saveTripBtn" class="primary">שמור נסיעה</button></div></div>
-    </section>
-    <section id="tab-queue" class="tab" hidden><h2>תור לכיסא הקדמי</h2><div class="grid two"><div><h3>קצרות</h3><div id="q-front-short" class="card"></div></div><div><h3>ארוכות</h3><div id="q-front-long" class="card"></div></div></div><h2>תור לשורה האחורית</h2><div class="grid two"><div><h3>קצרות</h3><div id="q-back-short" class="card"></div></div><div><h3>ארוכות</h3><div id="q-back-long" class="card"></div></div></div></section>
-    <section id="tab-history" class="tab" hidden><div id="stats" class="stats"></div><h2>נסיעות אחרונות</h2><div id="historyList" class="card"></div></section>
-    <section id="tab-settings" class="tab" hidden><h2>שמות הורים</h2><div class="card form-card"><label>הורה 1<input id="parent0" maxlength="40"></label><label>הורה 2<input id="parent1" maxlength="40"></label></div><h2>ילדים</h2><div id="childrenSettings" class="card"></div><div class="card form-card"><label>שם ילד/ה<input id="newChildName" maxlength="40"></label><label>מגדר<select id="newChildGender"><option value="m">👦 בן</option><option value="f">👧 בת</option><option value="n">🧒 ללא סימון</option></select></label><button id="addChildBtn" class="primary">הוסף ילד/ה</button></div><h2>גיבוי ותחזוקה</h2><div class="card form-card"><button id="exportBtn" class="secondary">ייצוא גיבוי</button><label class="file-label">ייבוא גיבוי<input id="importInput" type="file" accept="application/json"></label><button id="clearHistoryBtn" class="danger">נקה היסטוריה</button></div><p class="privacy">הנתונים נשמרים במכשיר בלבד. מומלץ לייצא גיבוי מדי פעם.</p></section>
-  </main>
-  <dialog id="assignDialog"><form method="dialog"><h2 id="assignTitle">בחר ילד/ה</h2><div id="assignOptions"></div><button id="clearSeatBtn" type="button" class="danger">הסר מהמושב</button><button class="secondary">ביטול</button></form></dialog>
-  <dialog id="fixedDialog"><form method="dialog"><h2 id="fixedTitle">מושב קבוע</h2><div id="fixedOptions" class="grid two"></div><button id="removeFixedBtn" type="button" class="danger">הסר מושב קבוע</button><button class="secondary">ביטול</button></form></dialog>
-  <script src="app.js" defer></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#07070f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="מושבים" />
+    <meta
+      name="description"
+      content="ניהול הוגן של מושבי ילדים ברכב"
+    />
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <title>מושבים ברכב</title>
+  </head>
+
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <h1>🚗 מושבים</h1>
+          <p>סידור הוגן למשפחה</p>
+        </div>
+
+        <span id="tripCounter" class="badge">0 נסיעות</span>
+      </header>
+
+      <nav class="nav" aria-label="ניווט ראשי">
+        <button class="nav-btn active" data-tab="trip">🚘 נסיעה</button>
+        <button class="nav-btn" data-tab="queue">📋 תורים</button>
+        <button class="nav-btn" data-tab="history">🛣️ היסטוריה</button>
+        <button class="nav-btn" data-tab="settings">⚙️ הגדרות</button>
+      </nav>
+
+      <section id="tab-trip" class="tab">
+        <div id="setupView">
+          <div id="installBanner"></div>
+
+          <h2>סוג נסיעה</h2>
+          <div class="grid two">
+            <button
+              id="shortBtn"
+              class="choice selected"
+              data-trip-type="short"
+            >
+              ⚡ קצרה
+            </button>
+
+            <button
+              id="longBtn"
+              class="choice"
+              data-trip-type="long"
+            >
+              🛣️ ארוכה
+            </button>
+          </div>
+
+          <h2>מי מההורים נוסע?</h2>
+          <div id="parentsGrid" class="grid two"></div>
+          <p class="hint">
+            מושב קדמי לילד זמין רק כאשר נבחר הורה אחד בדיוק.
+          </p>
+
+          <h2>מי מהילדים נוסע?</h2>
+          <div id="childrenList" class="card"></div>
+
+          <button id="generateBtn" class="primary">
+            צור סידור מושבים
+          </button>
+        </div>
+
+        <div id="assignmentView" hidden>
+          <div id="assignmentMessage" class="success"></div>
+
+          <div class="car">
+            <div class="car-row">
+              <span>קדמי</span>
+              <button class="seat driver" disabled>נהג</button>
+              <button class="seat" data-seat="front">+</button>
+            </div>
+
+            <div class="car-row">
+              <span>אמצע</span>
+              <button class="seat" data-seat="mid1">+</button>
+              <button class="seat" data-seat="mid2">+</button>
+              <button class="seat" data-seat="mid3">+</button>
+            </div>
+
+            <div class="car-row">
+              <span>אחורי</span>
+              <button class="seat" data-seat="back1">+</button>
+              <button class="seat" data-seat="back2">+</button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="editTripBtn" class="secondary">
+              חזור לעריכה
+            </button>
+            <button id="saveTripBtn" class="primary">
+              שמור נסיעה
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-queue" class="tab" hidden>
+        <h2>תור לכיסא הקדמי</h2>
+        <div class="grid two">
+          <div>
+            <h3>קצרות</h3>
+            <div id="q-front-short" class="card"></div>
+          </div>
+
+          <div>
+            <h3>ארוכות</h3>
+            <div id="q-front-long" class="card"></div>
+          </div>
+        </div>
+
+        <h2>תור לשורה האחורית</h2>
+        <div class="grid two">
+          <div>
+            <h3>קצרות</h3>
+            <div id="q-back-short" class="card"></div>
+          </div>
+
+          <div>
+            <h3>ארוכות</h3>
+            <div id="q-back-long" class="card"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-history" class="tab" hidden>
+        <div id="stats" class="stats"></div>
+
+        <h2>נסיעות אחרונות</h2>
+        <div id="historyList" class="card"></div>
+      </section>
+
+      <section id="tab-settings" class="tab" hidden>
+        <h2>שמות הורים</h2>
+        <div class="card form-card">
+          <label>
+            הורה 1
+            <input id="parent0" maxlength="40" />
+          </label>
+
+          <label>
+            הורה 2
+            <input id="parent1" maxlength="40" />
+          </label>
+        </div>
+
+        <h2>ילדים</h2>
+        <div id="childrenSettings" class="card"></div>
+
+        <div class="card form-card">
+          <label>
+            שם ילד/ה
+            <input id="newChildName" maxlength="40" />
+          </label>
+
+          <label>
+            מגדר
+            <select id="newChildGender">
+              <option value="m">👦 בן</option>
+              <option value="f">👧 בת</option>
+              <option value="n">🧒 ללא סימון</option>
+            </select>
+          </label>
+
+          <button id="addChildBtn" class="primary">
+            הוסף ילד/ה
+          </button>
+        </div>
+
+        <h2>גיבוי ותחזוקה</h2>
+        <div class="card form-card">
+          <button id="exportBtn" class="secondary">
+            ייצוא גיבוי
+          </button>
+
+          <label class="file-label">
+            ייבוא גיבוי
+            <input
+              id="importInput"
+              type="file"
+              accept="application/json"
+            />
+          </label>
+
+          <button id="clearHistoryBtn" class="danger">
+            נקה היסטוריה
+          </button>
+        </div>
+
+        <p class="privacy">
+          הנתונים נשמרים במכשיר בלבד. מומלץ לייצא גיבוי מדי פעם.
+        </p>
+      </section>
+    </main>
+
+    <dialog id="assignDialog">
+      <form method="dialog">
+        <h2 id="assignTitle">בחר ילד/ה</h2>
+        <div id="assignOptions"></div>
+
+        <button id="clearSeatBtn" type="button" class="danger">
+          הסר מהמושב
+        </button>
+        <button class="secondary">ביטול</button>
+      </form>
+    </dialog>
+
+    <dialog id="fixedDialog">
+      <form method="dialog">
+        <h2 id="fixedTitle">מושב קבוע</h2>
+        <div id="fixedOptions" class="grid two"></div>
+
+        <button id="removeFixedBtn" type="button" class="danger">
+          הסר מושב קבוע
+        </button>
+        <button class="secondary">ביטול</button>
+      </form>
+    </dialog>
+
+    <script src="app.js" defer></script>
+  </body>
 </html>
