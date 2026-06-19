@@ -13,6 +13,7 @@
   let children = [];
   let trips = [];
   let selectedChildIds = [];
+  let parentCount = 1;
   let currentAssignment = null;
 
   function element(id) {
@@ -45,7 +46,7 @@
   function saveData() {
     localStorage.setItem(
       SMALL_CAR_STORAGE_KEY,
-      JSON.stringify({ version: 1, trips: trips.slice(0, 300) }),
+      JSON.stringify({ version: 2, trips: trips.slice(0, 300) }),
     );
   }
 
@@ -58,7 +59,12 @@
   }
 
   function getFrontStats(childId) {
-    const relevantTrips = trips.filter((trip) => trip.children.includes(childId));
+    const relevantTrips = trips.filter(
+      (trip) =>
+        trip.parentCount === 1 &&
+        trip.children.includes(childId),
+    );
+
     const count = relevantTrips.filter((trip) => trip.front === childId).length;
     const tripsSinceLastFront = relevantTrips.findIndex(
       (trip) => trip.front === childId,
@@ -88,6 +94,31 @@
 
       return childName(firstId).localeCompare(childName(secondId), 'he');
     });
+  }
+
+  function getCapacity() {
+    return parentCount === 1 ? 4 : 3;
+  }
+
+  function setParentCount(count) {
+    parentCount = count;
+    currentAssignment = null;
+
+    const capacity = getCapacity();
+
+    if (selectedChildIds.length > capacity) {
+      selectedChildIds = selectedChildIds.slice(0, capacity);
+    }
+
+    element('oneParentBtn').classList.toggle('selected', parentCount === 1);
+    element('twoParentsBtn').classList.toggle('selected', parentCount === 2);
+    element('smallCapacityHint').textContent =
+      parentCount === 1
+        ? 'עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.'
+        : 'עם שני הורים יש מקום לעד שלושה ילדים, וכולם יושבים מאחור.';
+
+    element('smallResult').hidden = true;
+    renderChildren();
   }
 
   function renderChildren() {
@@ -128,10 +159,17 @@
     if (selectedChildIds.includes(childId)) {
       selectedChildIds = selectedChildIds.filter((id) => id !== childId);
     } else {
-      if (selectedChildIds.length === 4) {
-        alert('ברכב 5 מקומות אפשר לבחור עד ארבעה ילדים.');
+      const capacity = getCapacity();
+
+      if (selectedChildIds.length === capacity) {
+        alert(
+          parentCount === 1
+            ? 'עם הורה אחד אפשר לבחור עד ארבעה ילדים.'
+            : 'עם שני הורים אפשר לבחור עד שלושה ילדים.',
+        );
         return;
       }
+
       selectedChildIds = [...selectedChildIds, childId];
     }
 
@@ -146,22 +184,35 @@
       return;
     }
 
-    const ranked = rankForFront(selectedChildIds);
-    const front = ranked[0];
-    const back = selectedChildIds.filter((id) => id !== front);
+    if (parentCount === 1) {
+      const ranked = rankForFront(selectedChildIds);
+      const front = ranked[0];
+      const back = selectedChildIds.filter((id) => id !== front);
 
-    currentAssignment = { front, back };
+      currentAssignment = { parentCount, front, back };
+    } else {
+      currentAssignment = {
+        parentCount,
+        front: null,
+        back: [...selectedChildIds],
+      };
+    }
+
     renderAssignment();
   }
 
   function renderAssignment() {
     const { front, back } = currentAssignment;
 
-    element('smallFrontSeat').textContent = childName(front);
+    element('smallFrontSeat').textContent =
+      parentCount === 1 ? childName(front) : 'הורה נוסף';
     element('smallBack1').textContent = back[0] ? childName(back[0]) : 'פנוי';
     element('smallBack2').textContent = back[1] ? childName(back[1]) : 'פנוי';
     element('smallBack3').textContent = back[2] ? childName(back[2]) : 'פנוי';
-    element('smallMessage').textContent = `${childName(front)} הבא/ה בתור למושב הקדמי.`;
+    element('smallMessage').textContent =
+      parentCount === 1
+        ? `${childName(front)} הבא/ה בתור למושב הקדמי.`
+        : 'שני ההורים נוסעים, ולכן כל הילדים יושבים מאחור.';
     element('smallResult').hidden = false;
   }
 
@@ -173,6 +224,7 @@
     trips.unshift({
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       createdAt: new Date().toISOString(),
+      parentCount,
       children: [...selectedChildIds],
       childNames: Object.fromEntries(
         selectedChildIds.map((id) => [id, childName(id)]),
@@ -223,9 +275,14 @@
     history.replaceChildren(
       ...trips.slice(0, 20).map((trip) => {
         const row = createElement('div', 'row');
+        const frontText =
+          trip.parentCount === 2 || !trip.front
+            ? 'קדמי: הורה נוסף'
+            : `קדמי: ${childName(trip.front, trip)}`;
+
         row.append(
           createElement('span', '', new Date(trip.createdAt).toLocaleDateString('he-IL')),
-          createElement('span', '', `קדמי: ${childName(trip.front, trip)}`),
+          createElement('span', '', frontText),
         );
         return row;
       }),
@@ -238,6 +295,8 @@
     renderHistory();
   }
 
+  element('oneParentBtn').addEventListener('click', () => setParentCount(1));
+  element('twoParentsBtn').addEventListener('click', () => setParentCount(2));
   element('smallGenerateBtn').addEventListener('click', generateAssignment);
   element('smallSaveBtn').addEventListener('click', saveTrip);
   element('smallEditBtn').addEventListener('click', () => {
@@ -245,5 +304,6 @@
   });
 
   loadData();
+  setParentCount(1);
   renderAll();
 })();
