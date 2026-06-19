@@ -1,12 +1,16 @@
-const CACHE_NAME = 'carseats-v5';
+const CACHE_NAME = 'carseats-v6';
 const BASE_PATH = '/carseats-pwa/';
 
 const APP_SHELL = [
   BASE_PATH,
+  `${BASE_PATH}home.html`,
   `${BASE_PATH}index.html`,
+  `${BASE_PATH}five-seat.html`,
   `${BASE_PATH}styles.css`,
   `${BASE_PATH}app.js`,
+  `${BASE_PATH}five-seat.js`,
   `${BASE_PATH}manifest.json`,
+  `${BASE_PATH}icons/car-seats-icon.svg`,
   `${BASE_PATH}icons/icon-192.png`,
   `${BASE_PATH}icons/icon-512.png`,
 ];
@@ -58,7 +62,7 @@ async function handleNavigationRequest(request) {
     cache.put(request, response.clone());
     return response;
   } catch {
-    return caches.match(`${BASE_PATH}index.html`);
+    return caches.match(`${BASE_PATH}home.html`);
   }
 }
 
