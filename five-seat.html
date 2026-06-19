@@ -61,11 +61,23 @@
       </header>
 
       <section>
+        <h2>כמה הורים נוסעים?</h2>
+        <div class="grid two">
+          <button id="oneParentBtn" class="choice selected" type="button">
+            👤 הורה אחד
+          </button>
+          <button id="twoParentsBtn" class="choice" type="button">
+            👥 שני הורים
+          </button>
+        </div>
+        <p id="smallCapacityHint" class="hint">
+          עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.
+        </p>
+
         <h2>מי מהילדים נוסע?</h2>
         <div id="smallChildrenList" class="card"></div>
-        <p class="hint">אפשר לבחור עד ארבעה ילדים: אחד מקדימה ושלושה מאחור.</p>
 
-        <button id="smallGenerateBtn" class="primary">בחר מי יושב מקדימה</button>
+        <button id="smallGenerateBtn" class="primary">צור סידור מושבים</button>
 
         <div id="smallResult" class="five-seat-result" hidden>
           <div id="smallMessage" class="success"></div>
