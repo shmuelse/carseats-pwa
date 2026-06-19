@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07070f" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>רכב 5 מקומות</title>
+    <style>
+      .top-link {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .five-seat-car {
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+        margin-top: 14px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+      }
+
+      .five-seat-row {
+        display: grid;
+        grid-template-columns: 54px repeat(3, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .five-seat-row:first-child {
+        grid-template-columns: 54px repeat(2, 1fr);
+      }
+
+      .five-seat-row span:first-child {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .five-seat-result {
+        margin-top: 14px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="app">
+      <a class="top-link" href="home.html">← בחירת רכב</a>
+
+      <header class="header">
+        <div>
+          <h1>🚗 רכב 5 מקומות</h1>
+          <p>תור נפרד למושב הקדמי</p>
+        </div>
+        <span id="smallTripCounter" class="badge">0 נסיעות</span>
+      </header>
+
+      <section>
+        <h2>מי מהילדים נוסע?</h2>
+        <div id="smallChildrenList" class="card"></div>
+        <p class="hint">אפשר לבחור עד ארבעה ילדים: אחד מקדימה ושלושה מאחור.</p>
+
+        <button id="smallGenerateBtn" class="primary">בחר מי יושב מקדימה</button>
+
+        <div id="smallResult" class="five-seat-result" hidden>
+          <div id="smallMessage" class="success"></div>
+
+          <div class="five-seat-car">
+            <div class="five-seat-row">
+              <span>קדמי</span>
+              <button class="seat driver" disabled>נהג</button>
+              <button id="smallFrontSeat" class="seat occupied" disabled></button>
+            </div>
+
+            <div class="five-seat-row">
+              <span>אחורי</span>
+              <button id="smallBack1" class="seat" disabled></button>
+              <button id="smallBack2" class="seat" disabled></button>
+              <button id="smallBack3" class="seat" disabled></button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="smallEditBtn" class="secondary">חזור לעריכה</button>
+            <button id="smallSaveBtn" class="primary">שמור נסיעה</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>התור למושב הקדמי</h2>
+        <div id="smallQueue" class="card"></div>
+      </section>
+
+      <section>
+        <h2>נסיעות אחרונות</h2>
+        <div id="smallHistory" class="card"></div>
+      </section>
+    </main>
+
+    <script src="five-seat.js" defer></script>
+  </body>
+</html>
