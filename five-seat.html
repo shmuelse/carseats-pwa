@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07070f" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>רכב 5 מקומות</title>
+  </head>
+
+  <body>
+    <main class="app">
+      <a class="top-link" href="home.html?choose=1">← בחירת רכב</a>
+
+      <header class="header">
+        <div>
+          <h1>🚗 רכב 5 מקומות</h1>
+          <p>תור נפרד למושב הקדמי</p>
+        </div>
+
+        <span id="smallTripCounter" class="badge">0 נסיעות</span>
+      </header>
+
+      <nav class="nav" aria-label="ניווט רכב 5 מקומות">
+        <button class="nav-btn active" data-small-tab="trip">🚘 נסיעה</button>
+        <button class="nav-btn" data-small-tab="queue">📋 תורים</button>
+        <button class="nav-btn" data-small-tab="history">🛣️ היסטוריה</button>
+        <button class="nav-btn" data-small-tab="settings">⚙️ הגדרות</button>
+      </nav>
+
+      <section id="small-tab-trip" class="tab">
+        <div id="installBanner"></div>
+
+        <h2>כמה הורים נוסעים?</h2>
+        <div class="grid two">
+          <button id="oneParentBtn" class="choice selected" type="button">
+            👤 הורה אחד
+          </button>
+          <button id="twoParentsBtn" class="choice" type="button">
+            👥 שני הורים
+          </button>
+        </div>
+        <p id="smallCapacityHint" class="hint">
+          עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.
+        </p>
+
+        <h2>מי מהילדים נוסע?</h2>
+        <div id="smallChildrenList" class="card"></div>
+
+        <button id="smallGenerateBtn" class="primary">צור סידור מושבים</button>
+
+        <div id="smallResult" hidden>
+          <div id="smallMessage" class="success"></div>
+
+          <div class="car">
+            <div class="car-row">
+              <span>קדמי</span>
+              <button class="seat driver" disabled>נהג</button>
+              <button id="smallFrontSeat" class="seat occupied" disabled></button>
+            </div>
+
+            <div class="car-row">
+              <span>אחורי</span>
+              <button id="smallBack1" class="seat" disabled></button>
+              <button id="smallBack2" class="seat" disabled></button>
+              <button id="smallBack3" class="seat" disabled></button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="smallEditBtn" class="secondary">חזור לעריכה</button>
+            <button id="smallSaveBtn" class="primary">שמור נסיעה</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="small-tab-queue" class="tab" hidden>
+        <h2>התור למושב הקדמי</h2>
+        <div id="smallQueue" class="card"></div>
+      </section>
+
+      <section id="small-tab-history" class="tab" hidden>
+        <h2>נסיעות אחרונות</h2>
+        <div id="smallHistory" class="card"></div>
+      </section>
+
+      <section id="small-tab-settings" class="tab" hidden>
+        <h2>מקומות קבועים ברכב 5 מקומות</h2>
+        <div id="smallFixedSeats" class="card"></div>
+
+        <p class="privacy">
+          ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות.
+          אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.
+        </p>
+      </section>
+    </main>
+
+    <dialog id="smallFixedDialog">
+      <form method="dialog">
+        <h2 id="smallFixedTitle">מושב קבוע</h2>
+        <div id="smallFixedOptions" class="grid two"></div>
+
+        <button id="smallRemoveFixedBtn" type="button" class="danger">
+          הסר מושב קבוע
+        </button>
+        <button class="secondary">ביטול</button>
+      </form>
+    </dialog>
+
+    <script src="vehicle-router.js" defer></script>
+    <script src="pwa-install.js" defer></script>
+    <script src="five-seat.js" defer></script>
+  </body>
+</html>

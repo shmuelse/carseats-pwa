@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Car Seats Manager</title>
+  <desc id="desc">A modern car with highlighted family seats</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6c63ff"/>
+      <stop offset="1" stop-color="#00d4aa"/>
+    </linearGradient>
+    <linearGradient id="car" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9dcff"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#11142c" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="118" fill="#090b18"/>
+  <circle cx="128" cy="118" r="92" fill="#6c63ff" opacity="0.18"/>
+  <circle cx="414" cy="402" r="120" fill="#00d4aa" opacity="0.16"/>
+
+  <g filter="url(#shadow)">
+    <path d="M113 216 163 131c11-19 31-31 53-31h80c22 0 42 12 53 31l50 85 39 14c17 6 28 22 28 40v98c0 18-14 32-32 32h-20v23c0 19-15 34-34 34h-20c-19 0-34-15-34-34v-23H186v23c0 19-15 34-34 34h-20c-19 0-34-15-34-34v-23H78c-18 0-32-14-32-32v-98c0-18 11-34 28-40l39-14Z" fill="url(#car)"/>
+
+    <path d="m174 143-34 73h232l-34-73c-6-13-19-21-33-21h-98c-14 0-27 8-33 21Z" fill="#20264d"/>
+
+    <rect x="132" y="247" width="248" height="112" rx="38" fill="#151a36"/>
+
+    <g>
+      <rect x="157" y="267" width="58" height="72" rx="20" fill="#6c63ff"/>
+      <rect x="227" y="267" width="58" height="72" rx="20" fill="#00d4aa"/>
+      <rect x="297" y="267" width="58" height="72" rx="20" fill="#ffb547"/>
+      <circle cx="186" cy="291" r="11" fill="#fff" opacity="0.92"/>
+      <circle cx="256" cy="291" r="11" fill="#fff" opacity="0.92"/>
+      <circle cx="326" cy="291" r="11" fill="#fff" opacity="0.92"/>
+      <path d="M169 321c5-12 29-12 34 0" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <path d="M239 321c5-12 29-12 34 0" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <path d="M309 321c5-12 29-12 34 0" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+    </g>
+
+    <circle cx="126" cy="373" r="28" fill="#171a31"/>
+    <circle cx="386" cy="373" r="28" fill="#171a31"/>
+  </g>
+
+  <circle cx="405" cy="112" r="52" fill="url(#bg)"/>
+  <path d="M382 112h46M405 89v46" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+</svg>
