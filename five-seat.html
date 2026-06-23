@@ -8,24 +8,11 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
     <title>רכב 5 מקומות</title>
-    <style>
-      .top-link {
-        display: inline-block;
-        margin-bottom: 12px;
-        color: var(--muted);
-        text-decoration: none;
-      }
-
-      .fixed-seat-select {
-        width: 100%;
-        margin-top: 6px;
-      }
-    </style>
   </head>
 
   <body>
     <main class="app">
-      <a class="top-link" href="home.html">← בחירת רכב</a>
+      <a class="top-link" href="home.html?choose=1">← בחירת רכב</a>
 
       <header class="header">
         <div>
@@ -99,16 +86,28 @@
 
       <section id="small-tab-settings" class="tab" hidden>
         <h2>מקומות קבועים ברכב 5 מקומות</h2>
-        <div class="card form-card">
-          <p class="hint">
-            ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות.
-            אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.
-          </p>
-          <div id="smallFixedSeats"></div>
-        </div>
+        <div id="smallFixedSeats" class="card"></div>
+
+        <p class="privacy">
+          ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות.
+          אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.
+        </p>
       </section>
     </main>
 
+    <dialog id="smallFixedDialog">
+      <form method="dialog">
+        <h2 id="smallFixedTitle">מושב קבוע</h2>
+        <div id="smallFixedOptions" class="grid two"></div>
+
+        <button id="smallRemoveFixedBtn" type="button" class="danger">
+          הסר מושב קבוע
+        </button>
+        <button class="secondary">ביטול</button>
+      </form>
+    </dialog>
+
+    <script src="vehicle-router.js" defer></script>
     <script src="five-seat.js" defer></script>
   </body>
 </html>
