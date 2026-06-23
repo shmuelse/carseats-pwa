@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carseats-v7';
+const CACHE_NAME = 'carseats-v8';
 const BASE_PATH = '/carseats-pwa/';
 
 const APP_SHELL = [
@@ -10,6 +10,7 @@ const APP_SHELL = [
   `${BASE_PATH}app.js`,
   `${BASE_PATH}five-seat.js`,
   `${BASE_PATH}vehicle-router.js`,
+  `${BASE_PATH}pwa-install.js`,
   `${BASE_PATH}manifest.json`,
   `${BASE_PATH}icons/car-seats-icon.svg`,
   `${BASE_PATH}icons/icon-192.png`,
