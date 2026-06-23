@@ -4,6 +4,16 @@
   const MAIN_STORAGE_KEY = 'carsv4';
   const SMALL_CAR_STORAGE_KEY = 'carsv4-small-car';
 
+  const SMALL_SEATS = ['front', 'back1', 'back2', 'back3'];
+  const BACK_SEATS = ['back1', 'back2', 'back3'];
+
+  const SMALL_SEAT_NAMES = {
+    front: 'קדמי ליד הנהג',
+    back1: 'אחורי שמאל',
+    back2: 'אחורי אמצע',
+    back3: 'אחורי ימין',
+  };
+
   const GENDER_ICONS = {
     m: '👦',
     f: '👧',
@@ -12,6 +22,7 @@
 
   let children = [];
   let trips = [];
+  let fixedSeats = {};
   let selectedChildIds = [];
   let parentCount = 1;
   let currentAssignment = null;
@@ -35,18 +46,38 @@
       const smallCarState = JSON.parse(
         localStorage.getItem(SMALL_CAR_STORAGE_KEY) || '{}',
       );
+
       trips = Array.isArray(smallCarState.trips) ? smallCarState.trips : [];
+      fixedSeats = normalizeFixedSeats(smallCarState.fixedSeats || {});
     } catch (error) {
       console.error('Failed to load five-seat data', error);
       children = [];
       trips = [];
+      fixedSeats = {};
     }
+  }
+
+  function normalizeFixedSeats(value) {
+    const childIds = new Set(children.map((child) => child.id));
+    const normalized = {};
+
+    Object.entries(value).forEach(([childId, seat]) => {
+      if (childIds.has(childId) && SMALL_SEATS.includes(seat)) {
+        normalized[childId] = seat;
+      }
+    });
+
+    return normalized;
   }
 
   function saveData() {
     localStorage.setItem(
       SMALL_CAR_STORAGE_KEY,
-      JSON.stringify({ version: 2, trips: trips.slice(0, 300) }),
+      JSON.stringify({
+        version: 3,
+        trips: trips.slice(0, 300),
+        fixedSeats,
+      }),
     );
   }
 
@@ -155,6 +186,58 @@
     );
   }
 
+  function renderFixedSeatSettings() {
+    const container = element('smallFixedSeats');
+
+    if (!children.length) {
+      container.replaceChildren(
+        createElement('div', 'empty', 'אין ילדים שאפשר להגדיר להם מקום קבוע.'),
+      );
+      return;
+    }
+
+    container.replaceChildren(
+      ...children.map((child) => {
+        const row = createElement('div', 'row');
+        const label = createElement(
+          'div',
+          '',
+          `${GENDER_ICONS[child.gender] || '🧒'} ${child.name}`,
+        );
+        const select = createElement('select', 'fixed-seat-select');
+
+        select.append(createOption('', 'ללא מקום קבוע'));
+        SMALL_SEATS.forEach((seat) => {
+          select.append(createOption(seat, SMALL_SEAT_NAMES[seat]));
+        });
+
+        select.value = fixedSeats[child.id] || '';
+        select.addEventListener('change', () => {
+          if (select.value) {
+            fixedSeats[child.id] = select.value;
+          } else {
+            delete fixedSeats[child.id];
+          }
+
+          saveData();
+          currentAssignment = null;
+          element('smallResult').hidden = true;
+          renderFixedSeatSettings();
+        });
+
+        row.append(label, select);
+        return row;
+      }),
+    );
+  }
+
+  function createOption(value, text) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = text;
+    return option;
+  }
+
   function toggleChild(childId) {
     if (selectedChildIds.includes(childId)) {
       selectedChildIds = selectedChildIds.filter((id) => id !== childId);
@@ -178,42 +261,129 @@
     renderChildren();
   }
 
+  function validateFixedSeatsForSelection() {
+    const occupiedSeats = new Map();
+
+    for (const childId of selectedChildIds) {
+      const fixedSeat = fixedSeats[childId];
+
+      if (!fixedSeat) {
+        continue;
+      }
+
+      if (parentCount === 2 && fixedSeat === 'front') {
+        return (
+          `${childName(childId)} מוגדר/ת קבוע במושב הקדמי, ` +
+          'אבל בנסיעה עם שני הורים המושב הקדמי תפוס על ידי הורה נוסף.'
+        );
+      }
+
+      if (occupiedSeats.has(fixedSeat)) {
+        return (
+          `המושב ${SMALL_SEAT_NAMES[fixedSeat]} מוגדר גם ל` +
+          `${childName(occupiedSeats.get(fixedSeat))} וגם ל${childName(childId)}.`
+        );
+      }
+
+      occupiedSeats.set(fixedSeat, childId);
+    }
+
+    return null;
+  }
+
   function generateAssignment() {
     if (!selectedChildIds.length) {
       alert('יש לבחור לפחות ילד/ה אחד/ת.');
       return;
     }
 
-    if (parentCount === 1) {
-      const ranked = rankForFront(selectedChildIds);
-      const front = ranked[0];
-      const back = selectedChildIds.filter((id) => id !== front);
+    const fixedSeatError = validateFixedSeatsForSelection();
 
-      currentAssignment = { parentCount, front, back };
-    } else {
-      currentAssignment = {
-        parentCount,
-        front: null,
-        back: [...selectedChildIds],
-      };
+    if (fixedSeatError) {
+      alert(fixedSeatError);
+      return;
     }
+
+    const seats = {};
+    const fixedChildIds = new Set();
+
+    placeFixedChildren(seats, fixedChildIds);
+
+    let remainingChildIds = selectedChildIds.filter(
+      (childId) => !fixedChildIds.has(childId),
+    );
+
+    if (parentCount === 1 && !seats.front && remainingChildIds.length) {
+      const frontChildId = rankForFront(remainingChildIds)[0];
+      seats.front = frontChildId;
+      remainingChildIds = remainingChildIds.filter((id) => id !== frontChildId);
+    }
+
+    assignBackSeats(seats, remainingChildIds);
+
+    currentAssignment = {
+      parentCount,
+      front: parentCount === 1 ? seats.front || null : null,
+      back: BACK_SEATS.map((seat) => seats[seat]).filter(Boolean),
+      seats,
+    };
 
     renderAssignment();
   }
 
+  function placeFixedChildren(seats, fixedChildIds) {
+    selectedChildIds.forEach((childId) => {
+      const fixedSeat = fixedSeats[childId];
+
+      if (!fixedSeat) {
+        return;
+      }
+
+      if (parentCount === 2 && fixedSeat === 'front') {
+        return;
+      }
+
+      seats[fixedSeat] = childId;
+      fixedChildIds.add(childId);
+    });
+  }
+
+  function assignBackSeats(seats, childIds) {
+    const freeBackSeats = BACK_SEATS.filter((seat) => !seats[seat]);
+
+    childIds.forEach((childId, index) => {
+      const seat = freeBackSeats[index];
+
+      if (seat) {
+        seats[seat] = childId;
+      }
+    });
+  }
+
   function renderAssignment() {
-    const { front, back } = currentAssignment;
+    const { front, seats } = currentAssignment;
 
     element('smallFrontSeat').textContent =
-      parentCount === 1 ? childName(front) : 'הורה נוסף';
-    element('smallBack1').textContent = back[0] ? childName(back[0]) : 'פנוי';
-    element('smallBack2').textContent = back[1] ? childName(back[1]) : 'פנוי';
-    element('smallBack3').textContent = back[2] ? childName(back[2]) : 'פנוי';
-    element('smallMessage').textContent =
-      parentCount === 1
-        ? `${childName(front)} הבא/ה בתור למושב הקדמי.`
-        : 'שני ההורים נוסעים, ולכן כל הילדים יושבים מאחור.';
+      parentCount === 1 && front ? childName(front) : 'הורה נוסף';
+    element('smallBack1').textContent = seats.back1 ? childName(seats.back1) : 'פנוי';
+    element('smallBack2').textContent = seats.back2 ? childName(seats.back2) : 'פנוי';
+    element('smallBack3').textContent = seats.back3 ? childName(seats.back3) : 'פנוי';
+    element('smallMessage').textContent = buildAssignmentMessage();
     element('smallResult').hidden = false;
+  }
+
+  function buildAssignmentMessage() {
+    if (parentCount === 2) {
+      return 'שני ההורים נוסעים, ולכן כל הילדים יושבים מאחור.';
+    }
+
+    const frontChildId = currentAssignment.front;
+
+    if (frontChildId && fixedSeats[frontChildId] === 'front') {
+      return `${childName(frontChildId)} יושב/ת במושב הקדמי הקבוע.`;
+    }
+
+    return `${childName(frontChildId)} הבא/ה בתור למושב הקדמי.`;
   }
 
   function saveTrip() {
@@ -231,6 +401,7 @@
       ),
       front: currentAssignment.front,
       back: [...currentAssignment.back],
+      seats: { ...currentAssignment.seats },
     });
 
     saveData();
@@ -253,10 +424,18 @@
       ...rankForFront(children.map((child) => child.id)).map((childId, index) => {
         const stats = getFrontStats(childId);
         const row = createElement('div', 'row');
+        const fixedSeatText = fixedSeats[childId]
+          ? ` · קבוע: ${SMALL_SEAT_NAMES[fixedSeats[childId]]}`
+          : '';
+
         row.append(
           createElement('span', 'queue-rank', String(index + 1)),
           createElement('span', 'avatar', GENDER_ICONS[childById(childId)?.gender] || '🧒'),
-          createElement('span', '', `${childName(childId)} · ${stats.count} פעמים מקדימה`),
+          createElement(
+            'span',
+            '',
+            `${childName(childId)} · ${stats.count} פעמים מקדימה${fixedSeatText}`,
+          ),
         );
         return row;
       }),
@@ -291,6 +470,7 @@
 
   function renderAll() {
     renderChildren();
+    renderFixedSeatSettings();
     renderQueue();
     renderHistory();
   }
