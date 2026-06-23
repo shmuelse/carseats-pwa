@@ -223,6 +223,7 @@
           currentAssignment = null;
           element('smallResult').hidden = true;
           renderFixedSeatSettings();
+          renderQueue();
         });
 
         row.append(label, select);
@@ -365,9 +366,13 @@
 
     element('smallFrontSeat').textContent =
       parentCount === 1 && front ? childName(front) : 'הורה נוסף';
+    element('smallFrontSeat').classList.toggle('fixed', fixedSeats[front] === 'front');
     element('smallBack1').textContent = seats.back1 ? childName(seats.back1) : 'פנוי';
     element('smallBack2').textContent = seats.back2 ? childName(seats.back2) : 'פנוי';
     element('smallBack3').textContent = seats.back3 ? childName(seats.back3) : 'פנוי';
+    element('smallBack1').classList.toggle('fixed', fixedSeats[seats.back1] === 'back1');
+    element('smallBack2').classList.toggle('fixed', fixedSeats[seats.back2] === 'back2');
+    element('smallBack3').classList.toggle('fixed', fixedSeats[seats.back3] === 'back3');
     element('smallMessage').textContent = buildAssignmentMessage();
     element('smallResult').hidden = false;
   }
@@ -408,6 +413,7 @@
     selectedChildIds = [];
     currentAssignment = null;
     element('smallResult').hidden = true;
+    showSmallTab('history');
     renderAll();
     alert('הנסיעה נשמרה.');
   }
@@ -475,6 +481,22 @@
     renderHistory();
   }
 
+  function setupSmallTabs() {
+    document.querySelectorAll('[data-small-tab]').forEach((button) => {
+      button.addEventListener('click', () => showSmallTab(button.dataset.smallTab));
+    });
+  }
+
+  function showSmallTab(tabName) {
+    document.querySelectorAll('[data-small-tab]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.smallTab === tabName);
+    });
+
+    document.querySelectorAll('[id^="small-tab-"]').forEach((section) => {
+      section.hidden = section.id !== `small-tab-${tabName}`;
+    });
+  }
+
   element('oneParentBtn').addEventListener('click', () => setParentCount(1));
   element('twoParentsBtn').addEventListener('click', () => setParentCount(2));
   element('smallGenerateBtn').addEventListener('click', generateAssignment);
@@ -484,6 +506,7 @@
   });
 
   loadData();
+  setupSmallTabs();
   setParentCount(1);
   renderAll();
 })();
