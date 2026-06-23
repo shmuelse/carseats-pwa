@@ -16,45 +16,9 @@
         text-decoration: none;
       }
 
-      .five-seat-car {
-        display: grid;
-        gap: 10px;
-        padding: 16px;
-        margin-top: 14px;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-      }
-
-      .five-seat-row {
-        display: grid;
-        grid-template-columns: 54px repeat(3, 1fr);
-        gap: 8px;
-        align-items: center;
-      }
-
-      .five-seat-row:first-child {
-        grid-template-columns: 54px repeat(2, 1fr);
-      }
-
-      .five-seat-row span:first-child {
-        color: var(--muted);
-        font-size: 11px;
-      }
-
-      .five-seat-result {
-        margin-top: 14px;
-      }
-
       .fixed-seat-select {
         width: 100%;
         margin-top: 6px;
-      }
-
-      .settings-subtitle {
-        margin-top: 0;
-        margin-bottom: 8px;
-        font-size: 16px;
       }
     </style>
   </head>
@@ -68,10 +32,18 @@
           <h1>🚗 רכב 5 מקומות</h1>
           <p>תור נפרד למושב הקדמי</p>
         </div>
+
         <span id="smallTripCounter" class="badge">0 נסיעות</span>
       </header>
 
-      <section>
+      <nav class="nav" aria-label="ניווט רכב 5 מקומות">
+        <button class="nav-btn active" data-small-tab="trip">🚘 נסיעה</button>
+        <button class="nav-btn" data-small-tab="queue">📋 תורים</button>
+        <button class="nav-btn" data-small-tab="history">🛣️ היסטוריה</button>
+        <button class="nav-btn" data-small-tab="settings">⚙️ הגדרות</button>
+      </nav>
+
+      <section id="small-tab-trip" class="tab">
         <h2>כמה הורים נוסעים?</h2>
         <div class="grid two">
           <button id="oneParentBtn" class="choice selected" type="button">
@@ -90,17 +62,17 @@
 
         <button id="smallGenerateBtn" class="primary">צור סידור מושבים</button>
 
-        <div id="smallResult" class="five-seat-result" hidden>
+        <div id="smallResult" hidden>
           <div id="smallMessage" class="success"></div>
 
-          <div class="five-seat-car">
-            <div class="five-seat-row">
+          <div class="car">
+            <div class="car-row">
               <span>קדמי</span>
               <button class="seat driver" disabled>נהג</button>
               <button id="smallFrontSeat" class="seat occupied" disabled></button>
             </div>
 
-            <div class="five-seat-row">
+            <div class="car-row">
               <span>אחורי</span>
               <button id="smallBack1" class="seat" disabled></button>
               <button id="smallBack2" class="seat" disabled></button>
@@ -115,26 +87,25 @@
         </div>
       </section>
 
-      <section>
-        <h2>הגדרות</h2>
-        <div class="card">
-          <h3 class="settings-subtitle">מקומות קבועים ברכב 5 מקומות</h3>
+      <section id="small-tab-queue" class="tab" hidden>
+        <h2>התור למושב הקדמי</h2>
+        <div id="smallQueue" class="card"></div>
+      </section>
+
+      <section id="small-tab-history" class="tab" hidden>
+        <h2>נסיעות אחרונות</h2>
+        <div id="smallHistory" class="card"></div>
+      </section>
+
+      <section id="small-tab-settings" class="tab" hidden>
+        <h2>מקומות קבועים ברכב 5 מקומות</h2>
+        <div class="card form-card">
           <p class="hint">
             ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות.
             אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.
           </p>
           <div id="smallFixedSeats"></div>
         </div>
-      </section>
-
-      <section>
-        <h2>התור למושב הקדמי</h2>
-        <div id="smallQueue" class="card"></div>
-      </section>
-
-      <section>
-        <h2>נסיעות אחרונות</h2>
-        <div id="smallHistory" class="card"></div>
       </section>
     </main>
 
