@@ -17,6 +17,7 @@
   const GENDER_ICONS = {
     m: '👦',
     f: '👧',
+    n: '🧒',
   };
 
   let children = [];
@@ -25,6 +26,7 @@
   let selectedChildIds = [];
   let parentCount = 1;
   let currentAssignment = null;
+  let fixedSeatChildId = null;
 
   function element(id) {
     return document.getElementById(id);
@@ -196,46 +198,84 @@
     }
 
     container.replaceChildren(
-      ...children.map((child) => {
-        const row = createElement('div', 'row');
-        const label = createElement(
-          'div',
-          '',
-          `${GENDER_ICONS[child.gender] || '🧒'} ${child.name}`,
-        );
-        const select = createElement('select', 'fixed-seat-select');
-
-        select.append(createOption('', 'ללא מקום קבוע'));
-        SMALL_SEATS.forEach((seat) => {
-          select.append(createOption(seat, SMALL_SEAT_NAMES[seat]));
-        });
-
-        select.value = fixedSeats[child.id] || '';
-        select.addEventListener('change', () => {
-          if (select.value) {
-            fixedSeats[child.id] = select.value;
-          } else {
-            delete fixedSeats[child.id];
-          }
-
-          saveData();
-          currentAssignment = null;
-          element('smallResult').hidden = true;
-          renderFixedSeatSettings();
-          renderQueue();
-        });
-
-        row.append(label, select);
-        return row;
-      }),
+      ...children.map(createFixedSeatSettingsRow),
     );
   }
 
-  function createOption(value, text) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = text;
-    return option;
+  function createFixedSeatSettingsRow(child) {
+    const row = createElement('div', 'row');
+    const details = createElement('div');
+
+    details.append(
+      createElement('strong', '', `${GENDER_ICONS[child.gender] || '🧒'} ${child.name}`),
+    );
+
+    if (fixedSeats[child.id]) {
+      details.append(
+        createElement('div', 'fixed-label', `📌 ${SMALL_SEAT_NAMES[fixedSeats[child.id]]}`),
+      );
+    }
+
+    const fixedSeatButton = createElement('button', 'small-btn', 'מושב קבוע');
+    fixedSeatButton.addEventListener('click', () => openSmallFixedSeatDialog(child.id));
+
+    row.append(details, fixedSeatButton);
+    return row;
+  }
+
+  function openSmallFixedSeatDialog(childId) {
+    fixedSeatChildId = childId;
+
+    const child = childById(childId);
+    element('smallFixedTitle').textContent = `מושב קבוע — ${child.name}`;
+
+    const buttons = SMALL_SEATS.map((seat) =>
+      createSmallFixedSeatButton(child, seat),
+    );
+
+    element('smallFixedOptions').replaceChildren(...buttons);
+    element('smallFixedDialog').showModal();
+  }
+
+  function createSmallFixedSeatButton(child, seat) {
+    const existingOwner = children.find(
+      (candidate) =>
+        candidate.id !== child.id &&
+        fixedSeats[candidate.id] === seat,
+    );
+
+    const label = existingOwner
+      ? `${SMALL_SEAT_NAMES[seat]} — תפוס`
+      : SMALL_SEAT_NAMES[seat];
+
+    const button = createElement('button', 'choice', label);
+    button.type = 'button';
+    button.disabled = Boolean(existingOwner);
+    button.classList.toggle('selected', fixedSeats[child.id] === seat);
+
+    button.addEventListener('click', () => {
+      fixedSeats[child.id] = seat;
+      saveData();
+      element('smallFixedDialog').close();
+      currentAssignment = null;
+      element('smallResult').hidden = true;
+      renderAll();
+    });
+
+    return button;
+  }
+
+  function removeSmallFixedSeat() {
+    if (!fixedSeatChildId) {
+      return;
+    }
+
+    delete fixedSeats[fixedSeatChildId];
+    saveData();
+    element('smallFixedDialog').close();
+    currentAssignment = null;
+    element('smallResult').hidden = true;
+    renderAll();
   }
 
   function toggleChild(childId) {
@@ -503,6 +543,7 @@
   element('smallEditBtn').addEventListener('click', () => {
     element('smallResult').hidden = true;
   });
+  element('smallRemoveFixedBtn').addEventListener('click', removeSmallFixedSeat);
 
   loadData();
   setupSmallTabs();
