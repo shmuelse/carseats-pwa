@@ -4,6 +4,9 @@
   const LANGUAGE_KEY = 'carseats-language';
   const DEFAULT_LANGUAGE = 'he';
 
+  const nativeAlert = window.alert.bind(window);
+  const nativeConfirm = window.confirm.bind(window);
+
   const LANGUAGES = {
     he: {
       label: 'עברית',
@@ -27,7 +30,6 @@
       'מושב קדמי, שלושה באמצע ושניים מאחור.': 'Front passenger seat, three middle seats, and two rear seats.',
       '🚗 רכב רגיל — 5 מקומות': '🚗 Regular car — 5 seats',
       'נהג, ילד בתור במושב הקדמי ושלושה ילדים מאחור.': 'Driver, one child in the front rotation, and three children in the back.',
-
       'מושבים ברכב': 'Car seats',
       '🚗 מושבים': '🚗 Seats',
       'סידור הוגן למשפחה': 'Fair seating for the family',
@@ -77,8 +79,6 @@
       '🌙 מצב כהה': '🌙 Dark mode',
       '☀️ מצב רגיל': '☀️ Light mode',
       'עברית': 'Hebrew',
-      'English': 'English',
-
       'רכב 5 מקומות': '5-seat car',
       '🚗 רכב 5 מקומות': '🚗 5-seat car',
       'תור נפרד למושב הקדמי': 'Separate front-seat rotation',
@@ -88,8 +88,6 @@
       'עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.': 'With one parent, there is room for up to four children, and one sits in the front.',
       'התור למושב הקדמי': 'Front seat queue',
       'מקומות קבועים ברכב 5 מקומות': 'Fixed seats in the 5-seat car',
-      'ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות. אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.': 'These settings are separate from the fixed seats in the 7-seat car. If two parents are coming, a fixed front seat for a child will not be available.',
-
       'התקן כאפליקציה': 'Install as app',
       'האפליקציה מוכנה להתקנה על מסך הבית.': 'The app is ready to be installed on your home screen.',
       'ההתקנה הסתיימה בהצלחה.': 'Installation completed successfully.',
@@ -109,35 +107,30 @@
       'פעמים': 'times',
       'פעם': 'time',
       'היום': 'today',
+      'יש לבחור לפחות ילד/ה אחד/ת.': 'Select at least one child.',
+      'השמירה נכשלה. מומלץ לייצא גיבוי ולבדוק מקום פנוי בדפדפן.': 'Saving failed. Export a backup and check browser storage space.',
+      'הנתונים המקומיים נפגמו ולא נטענו. אפשר לייבא גיבוי מההגדרות.': 'Local data was damaged and could not be loaded. You can import a backup from Settings.',
+      'עם שני הורים אפשר לבחור עד שלושה ילדים.': 'With two parents, you can select up to three children.',
+      'עם הורה אחד אפשר לבחור עד ארבעה ילדים.': 'With one parent, you can select up to four children.',
+      'עם שני הורים, מושב קדמי קבוע לילד לא זמין.': 'With two parents, a fixed front seat for a child is not available.',
     },
   };
 
   const TEXT_RULES = [
-    {
-      pattern: /^(\d+) נסיעות$/,
-      replace: '$1 trips',
-    },
-    {
-      pattern: /^נבחרו (\d+) ילדים, אך יש רק (\d+) מושבים זמינים בהרכב הזה\.$/,
-      replace: '$1 children were selected, but only $2 seats are available for this setup.',
-    },
-    {
-      pattern: /^הורה (\d+)$/,
-      replace: 'Parent $1',
-    },
-    {
-      pattern: /^מושב קבוע: (.+)$/,
-      replace: 'Fixed seat: $1',
-    },
-    {
-      pattern: /^הסר מושב קבוע עבור (.+)$/,
-      replace: 'Remove fixed seat for $1',
-    },
-    {
-      pattern: /^בחר מושב קבוע עבור (.+)$/,
-      replace: 'Choose a fixed seat for $1',
-    },
+    { pattern: /^(\d+) נסיעות$/, replace: '$1 trips' },
+    { pattern: /^נבחרו (\d+) ילדים, אך יש רק (\d+) מושבים זמינים בהרכב הזה\.$/, replace: '$1 children were selected, but only $2 seats are available for this setup.' },
+    { pattern: /^נבחרו (\d+) ילדים, אך ברכב 5 מקומות עם שני הורים אפשר לבחור עד (\d+) ילדים\.$/, replace: '$1 children were selected, but in a 5-seat car with two parents you can select up to $2 children.' },
+    { pattern: /^נבחרו (\d+) ילדים, אך ברכב 5 מקומות עם הורה אחד אפשר לבחור עד (\d+) ילדים\.$/, replace: '$1 children were selected, but in a 5-seat car with one parent you can select up to $2 children.' },
+    { pattern: /^הורה (\d+)$/, replace: 'Parent $1' },
+    { pattern: /^מושב קבוע: (.+)$/, replace: 'Fixed seat: $1' },
+    { pattern: /^הסר מושב קבוע עבור (.+)$/, replace: 'Remove fixed seat for $1' },
+    { pattern: /^בחר מושב קבוע עבור (.+)$/, replace: 'Choose a fixed seat for $1' },
+    { pattern: /^המושב (.+) מוגדר גם ל(.+) וגם ל(.+)\.$/, replace: 'The seat $1 is assigned to both $2 and $3.' },
   ];
+
+  const originalTextByNode = new WeakMap();
+  const originalAttributesByElement = new WeakMap();
+  let isTranslating = false;
 
   function getStoredLanguage() {
     const storedLanguage = localStorage.getItem(LANGUAGE_KEY);
@@ -178,101 +171,138 @@
     document.documentElement.dir = languageConfig.dir;
     document.documentElement.dataset.language = safeLanguage;
 
-    translateDocument();
+    translateDocument(safeLanguage);
     renderLanguageSettings();
   }
 
   function saveLanguage(language) {
     const safeLanguage = LANGUAGES[language] ? language : DEFAULT_LANGUAGE;
     localStorage.setItem(LANGUAGE_KEY, safeLanguage);
-    window.location.reload();
+    applyLanguage(safeLanguage);
   }
 
-  function translateNodeText(node) {
+  function getOriginalText(node) {
+    if (!originalTextByNode.has(node)) {
+      originalTextByNode.set(node, node.nodeValue);
+    }
+
+    return originalTextByNode.get(node);
+  }
+
+  function translateNodeText(node, language = getStoredLanguage()) {
     if (!node || node.nodeType !== Node.TEXT_NODE) {
       return;
     }
 
-    const originalText = node.nodeValue;
-    const translatedText = translateText(originalText);
+    const originalText = getOriginalText(node);
 
-    if (translatedText !== originalText) {
-      node.nodeValue = originalText.replace(originalText.trim(), translatedText);
+    if (!originalText.trim()) {
+      return;
     }
+
+    if (language === DEFAULT_LANGUAGE) {
+      node.nodeValue = originalText;
+      return;
+    }
+
+    const translatedText = translateText(originalText, language);
+    node.nodeValue = originalText.replace(originalText.trim(), translatedText);
   }
 
-  function translateElementAttributes(element) {
-    ['title', 'aria-label', 'placeholder'].forEach((attribute) => {
-      const value = element.getAttribute(attribute);
+  function getOriginalAttribute(element, attribute) {
+    if (!originalAttributesByElement.has(element)) {
+      originalAttributesByElement.set(element, {});
+    }
 
-      if (!value) {
+    const attributes = originalAttributesByElement.get(element);
+
+    if (!Object.prototype.hasOwnProperty.call(attributes, attribute)) {
+      attributes[attribute] = element.getAttribute(attribute);
+    }
+
+    return attributes[attribute];
+  }
+
+  function translateElementAttributes(element, language = getStoredLanguage()) {
+    ['title', 'aria-label', 'placeholder'].forEach((attribute) => {
+      const originalValue = getOriginalAttribute(element, attribute);
+
+      if (!originalValue) {
         return;
       }
 
-      const translatedValue = translateText(value);
-
-      if (translatedValue !== value) {
-        element.setAttribute(attribute, translatedValue);
-      }
+      element.setAttribute(
+        attribute,
+        language === DEFAULT_LANGUAGE ? originalValue : translateText(originalValue, language),
+      );
     });
   }
 
-  function translateTree(root) {
-    if (getStoredLanguage() === DEFAULT_LANGUAGE) {
+  function translateTree(root, language = getStoredLanguage()) {
+    if (!root) {
       return;
     }
 
-    if (root.nodeType === Node.TEXT_NODE) {
-      translateNodeText(root);
-      return;
-    }
+    isTranslating = true;
 
-    if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_NODE) {
-      return;
-    }
+    try {
+      if (root.nodeType === Node.TEXT_NODE) {
+        translateNodeText(root, language);
+        return;
+      }
 
-    const walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode(node) {
-          const parent = node.parentElement;
+      if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_NODE) {
+        return;
+      }
 
-          if (!parent || ['SCRIPT', 'STYLE'].includes(parent.tagName)) {
-            return NodeFilter.FILTER_REJECT;
-          }
+      const walker = document.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode(node) {
+            const parent = node.parentElement;
 
-          if (!node.nodeValue.trim()) {
-            return NodeFilter.FILTER_REJECT;
-          }
+            if (!parent || ['SCRIPT', 'STYLE'].includes(parent.tagName)) {
+              return NodeFilter.FILTER_REJECT;
+            }
 
-          return NodeFilter.FILTER_ACCEPT;
+            if (!node.nodeValue.trim()) {
+              return NodeFilter.FILTER_REJECT;
+            }
+
+            return NodeFilter.FILTER_ACCEPT;
+          },
         },
-      },
-    );
-
-    const textNodes = [];
-    let currentNode = walker.nextNode();
-
-    while (currentNode) {
-      textNodes.push(currentNode);
-      currentNode = walker.nextNode();
-    }
-
-    textNodes.forEach(translateNodeText);
-
-    if (root.querySelectorAll) {
-      root.querySelectorAll('[title], [aria-label], [placeholder]').forEach(
-        translateElementAttributes,
       );
+
+      const textNodes = [];
+      let currentNode = walker.nextNode();
+
+      while (currentNode) {
+        textNodes.push(currentNode);
+        currentNode = walker.nextNode();
+      }
+
+      textNodes.forEach((node) => translateNodeText(node, language));
+
+      if (root.querySelectorAll) {
+        root.querySelectorAll('[title], [aria-label], [placeholder]').forEach((element) =>
+          translateElementAttributes(element, language),
+        );
+      }
+    } finally {
+      isTranslating = false;
     }
   }
 
-  function translateDocument() {
-    translateTree(document.body || document.documentElement);
+  function translateDocument(language = getStoredLanguage()) {
+    translateTree(document.body || document.documentElement, language);
 
-    if (document.title) {
-      document.title = translateText(document.title);
+    const title = document.querySelector('title');
+
+    if (title?.firstChild) {
+      translateNodeText(title.firstChild, language);
+      document.title = title.textContent;
     }
   }
 
@@ -298,15 +328,20 @@
     });
 
     container.replaceChildren(options);
-    translateTree(container);
+    translateTree(container, activeLanguage);
   }
 
   function watchDynamicText() {
     const observer = new MutationObserver((mutations) => {
+      if (isTranslating) {
+        return;
+      }
+
       mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach(translateTree);
+        mutation.addedNodes.forEach((node) => translateTree(node));
 
         if (mutation.type === 'characterData') {
+          originalTextByNode.delete(mutation.target);
           translateNodeText(mutation.target);
         }
       });
@@ -318,6 +353,9 @@
       characterData: true,
     });
   }
+
+  window.alert = (message) => nativeAlert(translateText(message));
+  window.confirm = (message) => nativeConfirm(translateText(message));
 
   window.CARSEATS_I18N = {
     getLanguage: getStoredLanguage,
