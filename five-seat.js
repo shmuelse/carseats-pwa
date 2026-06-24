@@ -17,7 +17,6 @@
   const GENDER_ICONS = {
     m: '👦',
     f: '👧',
-    n: '🧒',
   };
 
   let children = [];

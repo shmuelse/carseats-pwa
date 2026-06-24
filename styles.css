@@ -1,13 +1,51 @@
-:root {
+:root,
+:root[data-theme='dark'] {
   --bg: #07070f;
   --panel: #111120;
   --panel-2: #18182c;
   --text: #f2f2fa;
   --muted: #9696b5;
   --border: #30304a;
+  --row-border: #24243b;
   --accent: #786fff;
+  --accent-strong: #9a63ff;
+  --selected-bg: #242047;
+  --selected-text: #c4c0ff;
+  --badge-text: #b4afff;
   --teal: #00cfa6;
   --danger: #ff6b8a;
+  --danger-bg: #291521;
+  --danger-border: #5c2639;
+  --success-text: #70f1d5;
+  --success-bg: #0b2d28;
+  --success-border: #186b5b;
+  --input-bg: #0c0c17;
+  --backdrop: #000b;
+  --radius: 16px;
+}
+
+:root[data-theme='light'] {
+  --bg: #f5f6fb;
+  --panel: #ffffff;
+  --panel-2: #f0f2fb;
+  --text: #171725;
+  --muted: #656981;
+  --border: #d9ddeb;
+  --row-border: #eceef7;
+  --accent: #5f55f6;
+  --accent-strong: #8b55f6;
+  --selected-bg: #ebe9ff;
+  --selected-text: #3e35d6;
+  --badge-text: #4e46d9;
+  --teal: #008f7a;
+  --danger: #d9365f;
+  --danger-bg: #fff0f4;
+  --danger-border: #f4b8c7;
+  --success-text: #007862;
+  --success-bg: #e8fff8;
+  --success-border: #9be8d8;
+  --input-bg: #ffffff;
+  --backdrop: #0005;
   --radius: 16px;
 }
 
@@ -70,7 +108,7 @@ button {
 
 .badge {
   padding: 5px 10px;
-  color: #b4afff;
+  color: var(--badge-text);
   border: 1px solid var(--accent);
   border-radius: 999px;
   font-size: 12px;
@@ -104,15 +142,15 @@ button {
 
 .nav-btn.active,
 .choice.selected {
-  color: #c4c0ff;
-  background: #242047;
+  color: var(--selected-text);
+  background: var(--selected-bg);
   border-color: var(--accent);
 }
 
 /* Shared layout */
 h2 {
   margin: 20px 0 9px;
-  color: #c9c9dc;
+  color: var(--text);
   font-size: 14px;
 }
 
@@ -143,7 +181,7 @@ h3 {
   gap: 10px;
   align-items: center;
   padding: 12px 14px;
-  border-bottom: 1px solid #24243b;
+  border-bottom: 1px solid var(--row-border);
 }
 
 .row:last-child {
@@ -167,7 +205,7 @@ h3 {
   width: 36px;
   height: 36px;
   place-items: center;
-  background: #28244f;
+  background: var(--selected-bg);
   border-radius: 10px;
 }
 
@@ -186,7 +224,7 @@ h3 {
   width: 100%;
   margin-top: 14px;
   font-weight: bold;
-  background: linear-gradient(135deg, var(--accent), #9a63ff);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border: 0;
 }
 
@@ -197,8 +235,8 @@ h3 {
 
 .danger {
   color: var(--danger);
-  background: #291521;
-  border-color: #5c2639;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
 }
 
 .hint,
@@ -217,9 +255,9 @@ h3 {
 .success {
   padding: 12px;
   margin-bottom: 12px;
-  color: #70f1d5;
-  background: #0b2d28;
-  border: 1px solid #186b5b;
+  color: var(--success-text);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
   border-radius: 12px;
 }
 
@@ -316,7 +354,7 @@ select {
   padding: 11px;
   margin-top: 5px;
   color: var(--text);
-  background: #0c0c17;
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
 }
@@ -332,6 +370,12 @@ select {
 .fixed-label {
   color: var(--teal);
   font-size: 11px;
+}
+
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .queue-rank {
@@ -360,7 +404,7 @@ dialog {
 }
 
 dialog::backdrop {
-  background: #000b;
+  background: var(--backdrop);
 }
 
 dialog form {
