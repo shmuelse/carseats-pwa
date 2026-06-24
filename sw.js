@@ -1,23 +1,23 @@
-const CACHE_NAME = 'carseats-v9';
-const BASE_PATH = '/carseats-pwa/';
+const CACHE_NAME = 'carseats-v11';
 
 const APP_SHELL = [
-  BASE_PATH,
-  `${BASE_PATH}home.html`,
-  `${BASE_PATH}index.html`,
-  `${BASE_PATH}five-seat.html`,
-  `${BASE_PATH}styles.css`,
-  `${BASE_PATH}app.js`,
-  `${BASE_PATH}five-seat.js`,
-  `${BASE_PATH}theme.js`,
-  `${BASE_PATH}vehicle-router.js`,
-  `${BASE_PATH}pwa-install.js`,
-  `${BASE_PATH}supabase-config.js`,
-  `${BASE_PATH}install-analytics.js`,
-  `${BASE_PATH}manifest.json`,
-  `${BASE_PATH}icons/car-seats-icon.svg`,
-  `${BASE_PATH}icons/icon-192.png`,
-  `${BASE_PATH}icons/icon-512.png`,
+  './',
+  './home.html',
+  './index.html',
+  './five-seat.html',
+  './styles.css',
+  './app.js',
+  './five-seat.js',
+  './theme.js',
+  './i18n.js',
+  './vehicle-router.js',
+  './pwa-install.js',
+  './supabase-config.js',
+  './install-analytics.js',
+  './manifest.json',
+  './icons/car-seats-icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -67,7 +67,7 @@ async function handleNavigationRequest(request) {
     cache.put(request, response.clone());
     return response;
   } catch {
-    return caches.match(`${BASE_PATH}home.html`);
+    return caches.match('./home.html');
   }
 }
 

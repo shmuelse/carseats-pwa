@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#07070f" />
     <script src="theme.js"></script>
+    <script src="i18n.js"></script>
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
@@ -33,35 +34,23 @@
 
       <section id="small-tab-trip" class="tab">
         <div id="installBanner"></div>
-
         <h2>כמה הורים נוסעים?</h2>
         <div class="grid two">
-          <button id="oneParentBtn" class="choice selected" type="button">
-            👤 הורה אחד
-          </button>
-          <button id="twoParentsBtn" class="choice" type="button">
-            👥 שני הורים
-          </button>
+          <button id="oneParentBtn" class="choice selected" type="button">👤 הורה אחד</button>
+          <button id="twoParentsBtn" class="choice" type="button">👥 שני הורים</button>
         </div>
-        <p id="smallCapacityHint" class="hint">
-          עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.
-        </p>
-
+        <p id="smallCapacityHint" class="hint">עם הורה אחד יש מקום לעד ארבעה ילדים, ואחד מהם יושב מקדימה.</p>
         <h2>מי מהילדים נוסע?</h2>
         <div id="smallChildrenList" class="card"></div>
-
         <button id="smallGenerateBtn" class="primary">צור סידור מושבים</button>
-
         <div id="smallResult" hidden>
           <div id="smallMessage" class="success"></div>
-
           <div class="car">
             <div class="car-row">
               <span>קדמי</span>
               <button class="seat driver" disabled>נהג</button>
               <button id="smallFrontSeat" class="seat occupied" disabled></button>
             </div>
-
             <div class="car-row">
               <span>אחורי</span>
               <button id="smallBack1" class="seat" disabled></button>
@@ -69,35 +58,27 @@
               <button id="smallBack3" class="seat" disabled></button>
             </div>
           </div>
-
           <div class="actions">
             <button id="smallEditBtn" class="secondary">חזור לעריכה</button>
             <button id="smallSaveBtn" class="primary">שמור נסיעה</button>
           </div>
         </div>
       </section>
-
       <section id="small-tab-queue" class="tab" hidden>
         <h2>התור למושב הקדמי</h2>
         <div id="smallQueue" class="card"></div>
       </section>
-
       <section id="small-tab-history" class="tab" hidden>
         <h2>נסיעות אחרונות</h2>
         <div id="smallHistory" class="card"></div>
       </section>
-
       <section id="small-tab-settings" class="tab" hidden>
+        <h2>שפה</h2>
+        <div id="languageSettings" class="card form-card"></div>
         <h2>תצוגה</h2>
         <div id="themeSettings" class="card form-card"></div>
-
         <h2>מקומות קבועים ברכב 5 מקומות</h2>
         <div id="smallFixedSeats" class="card"></div>
-
-        <p class="privacy">
-          ההגדרות כאן נפרדות מהמקומות הקבועים ברכב 7 מקומות.
-          אם נוסעים שני הורים, מושב קדמי קבוע לילד לא יהיה זמין.
-        </p>
       </section>
     </main>
 
@@ -105,10 +86,7 @@
       <form method="dialog">
         <h2 id="smallFixedTitle">מושב קבוע</h2>
         <div id="smallFixedOptions" class="grid two"></div>
-
-        <button id="smallRemoveFixedBtn" type="button" class="danger">
-          הסר מושב קבוע
-        </button>
+        <button id="smallRemoveFixedBtn" type="button" class="danger">הסר מושב קבוע</button>
         <button class="secondary">ביטול</button>
       </form>
     </dialog>
